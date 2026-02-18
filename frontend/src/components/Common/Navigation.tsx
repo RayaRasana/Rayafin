@@ -76,7 +76,7 @@ export const Navigation: React.FC = () => {
           }}
           onClick={() => handleNavigate("/")}
         >
-          سیستم حسابداری RR
+          رایافین
         </Typography>
 
         {/* Navigation Links */}

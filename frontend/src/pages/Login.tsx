@@ -113,7 +113,7 @@ export const LoginPage: React.FC = () => {
                 mb: 1,
               }}
             >
-              سیستم حسابداری RR
+              رایافین
             </Typography>
             <Typography
               variant="body1"
