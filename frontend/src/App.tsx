@@ -10,6 +10,7 @@ import { ProtectedRoute } from "./components/Common/ProtectedRoute";
 import { LoginPage } from "./pages/Login";
 import { CompanyList } from "./components/Company/CompanyList";
 import { CustomerList } from "./components/Customer/CustomerList";
+import { ProductList } from "./components/Product/ProductList";
 import { UserList } from "./components/User/UserList";
 import { InvoiceList } from "./components/Invoice/InvoiceList";
 import { CommissionList } from "./components/Commission/CommissionList";
@@ -54,6 +55,16 @@ const App: React.FC = () => {
                   <ProtectedRoute>
                     <Layout>
                       <CustomerList />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/products"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ProductList />
                     </Layout>
                   </ProtectedRoute>
                 }

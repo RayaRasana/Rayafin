@@ -121,6 +121,24 @@ export const Navigation: React.FC = () => {
           </Button>
           <Button
             color="inherit"
+            onClick={() => handleNavigate("/products")}
+            sx={{
+              textTransform: "none",
+              fontSize: "0.95rem",
+              fontWeight: 500,
+              padding: "8px 16px",
+              borderRadius: "8px",
+              transition: "all 0.3s ease",
+
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+              },
+            }}
+          >
+            {PERSIAN_LABELS.products}
+          </Button>
+          <Button
+            color="inherit"
             onClick={() => handleNavigate("/users")}
             sx={{
               textTransform: "none",

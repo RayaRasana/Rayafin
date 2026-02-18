@@ -18,6 +18,11 @@ export type PermissionKey =
   | "customer:update"
   | "customer:delete"
   | "customer:read"
+  | "product:create"
+  | "product:update"
+  | "product:delete"
+  | "product:read"
+  | "product:import"
   | "audit:read";
 
 export const PERMISSION_MATRIX: Record<PermissionKey, Role[]> = {
@@ -38,6 +43,11 @@ export const PERMISSION_MATRIX: Record<PermissionKey, Role[]> = {
   "customer:update": ["OWNER", "ACCOUNTANT"],
   "customer:delete": ["OWNER", "ACCOUNTANT"],
   "customer:read": ["OWNER", "ACCOUNTANT", "SALES"],
+  "product:create": ["OWNER", "ACCOUNTANT"],
+  "product:update": ["OWNER", "ACCOUNTANT"],
+  "product:delete": ["OWNER", "ACCOUNTANT"],
+  "product:read": ["OWNER", "ACCOUNTANT", "SALES"],
+  "product:import": ["OWNER", "ACCOUNTANT"],
   "audit:read": ["OWNER", "ACCOUNTANT"],
 };
 

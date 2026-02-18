@@ -69,6 +69,29 @@ CREATE INDEX idx_customers_company_id ON customers(company_id);
 CREATE INDEX idx_customers_name ON customers(name);
 CREATE INDEX idx_customers_company_name ON customers(company_id, name);
 
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    sku VARCHAR(100),
+    unit_price NUMERIC(12,2) NOT NULL,
+    cost_price NUMERIC(12,2),
+    stock_quantity INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(company_id, sku),
+    CHECK (unit_price >= 0),
+    CHECK (cost_price >= 0),
+    CHECK (stock_quantity >= 0)
+);
+CREATE INDEX idx_products_company_id ON products(company_id);
+CREATE INDEX idx_products_name ON products(name);
+CREATE INDEX idx_products_sku ON products(sku);
+CREATE INDEX idx_products_is_active ON products(is_active);
+CREATE INDEX idx_products_company_name ON products(company_id, name);
+
 CREATE TABLE invoices (
     id SERIAL PRIMARY KEY,
     company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
@@ -170,6 +193,7 @@ CREATE INDEX idx_audit_logs_company_action ON audit_logs(company_id, action);
 -- ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 -- ALTER TABLE company_users ENABLE ROW LEVEL SECURITY;
 -- ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 -- ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 -- ALTER TABLE invoice_items ENABLE ROW LEVEL SECURITY;
 -- ALTER TABLE commissions ENABLE ROW LEVEL SECURITY;
@@ -177,6 +201,11 @@ CREATE INDEX idx_audit_logs_company_action ON audit_logs(company_id, action);
 
 -- Customer Isolation
 -- CREATE POLICY customer_company_isolation ON customers
+--     USING (company_id = current_setting('app.current_company_id')::integer)
+--     WITH CHECK (company_id = current_setting('app.current_company_id')::integer);
+
+-- Product Isolation
+-- CREATE POLICY product_company_isolation ON products
 --     USING (company_id = current_setting('app.current_company_id')::integer)
 --     WITH CHECK (company_id = current_setting('app.current_company_id')::integer);
 
@@ -232,6 +261,9 @@ CREATE TRIGGER tr_update_timestamp_company_users BEFORE UPDATE ON company_users
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER tr_update_timestamp_customers BEFORE UPDATE ON customers
+    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+CREATE TRIGGER tr_update_timestamp_products BEFORE UPDATE ON products
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER tr_update_timestamp_invoices BEFORE UPDATE ON invoices
@@ -447,11 +479,19 @@ GROUP BY company_id, user_id, status;
 --    - Commission calculation uses NUMERIC '100' (explicit type)
 --    - Prevents floating-point rounding errors
 --
+-- 7. **Products Table**:
+--    - Added products/services catalog table
+--    - Supports SKU, pricing, inventory tracking
+--    - Multi-tenant isolated by company_id
+--    - Validates unit_price >= 0, cost_price >= 0, stock_quantity >= 0
+--
 -- MULTI-TENANT ISOLATION:
 -- ======================
--- - All operational tables have company_id
+-- - All operational tables have company_id: customers, products, invoices, commissions
 -- - FK: companies.id
 -- - RLS policies can filter by: company_id = current_setting('app.current_company_id')::integer
+-- - Total of 9 tables: companies, users, company_users, customers, products,
+--   invoices, invoice_items, commissions, audit_logs
 --
 -- USER REFERENCE STRATEGY:
 -- ========================
@@ -465,6 +505,8 @@ GROUP BY company_id, user_id, status;
 -- - commission_amount = base_amount * (percent / 100) (enforced by trigger)
 -- - All calculations use NUMERIC(12,2) precision
 -- - commission_percent must be 0-100 (enforced by CHECK)
+-- - product unit_price >= 0, cost_price >= 0 (enforced by CHECK)
+-- - product stock_quantity >= 0 (enforced by CHECK)
 --
 -- TIMESTAMP STRATEGY:
 -- ===================

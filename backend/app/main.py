@@ -18,7 +18,7 @@ Then test with: python api_test_suite.py
 
 from dataclasses import dataclass
 
-from fastapi import FastAPI, HTTPException, Query, Depends, Request
+from fastapi import FastAPI, HTTPException, Query, Depends, Request, UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -26,12 +26,15 @@ from typing import Optional, List, Any, Callable
 from decimal import Decimal
 from datetime import datetime
 import bcrypt
+import csv
+import io
+from openpyxl import load_workbook
 
 # Import corrected models
 from backend.app.models import (
     Base, Company, User, CompanyUser, Customer, Invoice, InvoiceItem,
     Commission, AuditLog, UserRole, InvoiceStatus, CommissionStatus,
-    get_database_url
+    Product, get_database_url
 )
 from backend.app.permissions import PermissionKey, PERMISSION_MATRIX, RoleName
 
@@ -214,6 +217,41 @@ class CustomerResponse(BaseModel):
     id: int
     company_id: int
     name: str
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class ProductCreate(BaseModel):
+    company_id: int
+    name: str
+    description: Optional[str] = None
+    sku: Optional[str] = None
+    unit_price: Decimal
+    cost_price: Optional[Decimal] = None
+    stock_quantity: int = 0
+    is_active: bool = True
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    sku: Optional[str] = None
+    unit_price: Optional[Decimal] = None
+    cost_price: Optional[Decimal] = None
+    stock_quantity: Optional[int] = None
+    is_active: Optional[bool] = None
+
+class ProductResponse(BaseModel):
+    id: int
+    company_id: int
+    name: str
+    description: Optional[str] = None
+    sku: Optional[str] = None
+    unit_price: Decimal
+    cost_price: Optional[Decimal] = None
+    stock_quantity: int
+    is_active: bool
     created_at: datetime
     updated_at: datetime
     
@@ -668,6 +706,233 @@ async def delete_customer(
     db.delete(customer)
     db.commit()
     return None
+
+# ============================================================================
+# Product Endpoints
+# ============================================================================
+
+@app.post("/api/products", response_model=ProductResponse, status_code=201)
+async def create_product(
+    product: ProductCreate,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_CREATE)),
+):
+    """Create a new product."""
+    if product.company_id != context.company_id:
+        raise HTTPException(status_code=403, detail="Cross-company access denied")
+    
+    new_product = Product(
+        company_id=product.company_id,
+        name=product.name,
+        description=product.description,
+        sku=product.sku,
+        unit_price=product.unit_price,
+        cost_price=product.cost_price,
+        stock_quantity=product.stock_quantity,
+        is_active=product.is_active,
+    )
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+    return new_product
+
+@app.get("/api/products", response_model=List[ProductResponse])
+async def list_products(
+    company_id: Optional[int] = None,
+    skip: int = Query(0),
+    limit: int = Query(100),
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_READ)),
+):
+    """List products."""
+    if company_id is not None and company_id != context.company_id:
+        raise HTTPException(status_code=403, detail="Cross-company access denied")
+    
+    query = db.query(Product).filter(Product.company_id == context.company_id)
+    
+    products = query.offset(skip).limit(limit).all()
+    return products
+
+@app.get("/api/products/{product_id}", response_model=ProductResponse)
+async def get_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_READ)),
+):
+    """Get a product by ID."""
+    
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.company_id == context.company_id,
+    ).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
+
+@app.put("/api/products/{product_id}", response_model=ProductResponse)
+async def update_product(
+    product_id: int,
+    product_update: ProductUpdate,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_UPDATE)),
+):
+    """Update a product."""
+    
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.company_id == context.company_id,
+    ).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    if product_update.name is not None:
+        product.name = product_update.name
+    if product_update.description is not None:
+        product.description = product_update.description
+    if product_update.sku is not None:
+        product.sku = product_update.sku
+    if product_update.unit_price is not None:
+        product.unit_price = product_update.unit_price
+    if product_update.cost_price is not None:
+        product.cost_price = product_update.cost_price
+    if product_update.stock_quantity is not None:
+        product.stock_quantity = product_update.stock_quantity
+    if product_update.is_active is not None:
+        product.is_active = product_update.is_active
+    
+    db.commit()
+    db.refresh(product)
+    return product
+
+@app.delete("/api/products/{product_id}", status_code=204)
+async def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_DELETE)),
+):
+    """Delete a product."""
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.company_id == context.company_id,
+    ).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    db.delete(product)
+    db.commit()
+    return None
+
+@app.post("/api/products/import", status_code=201)
+async def import_products(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_IMPORT)),
+):
+    """Import products from CSV or XLSX file.
+    
+    Expected columns:
+    - name (required)
+    - description (optional)
+    - sku (optional)
+    - unit_price (required)
+    - cost_price (optional)
+    - stock_quantity (optional, default: 0)
+    - is_active (optional, default: true)
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    
+    filename = file.filename.lower()
+    
+    try:
+        contents = await file.read()
+        
+        products_data = []
+        
+        if filename.endswith('.csv'):
+            # Parse CSV
+            text_content = contents.decode('utf-8-sig')  # Handle BOM
+            csv_reader = csv.DictReader(io.StringIO(text_content))
+            products_data = list(csv_reader)
+            
+        elif filename.endswith(('.xlsx', '.xls')):
+            # Parse Excel
+            wb = load_workbook(filename=io.BytesIO(contents), read_only=True)
+            ws = wb.active
+            
+            # Get headers from first row
+            headers = [cell.value for cell in ws[1]]
+            
+            # Read data rows
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                if any(row):  # Skip empty rows
+                    row_dict = {headers[i]: row[i] for i in range(len(headers)) if i < len(row)}
+                    products_data.append(row_dict)
+        else:
+            raise HTTPException(
+                status_code=400, 
+                detail="Invalid file format. Only CSV, XLS, and XLSX are supported"
+            )
+        
+        # Validate and create products
+        created_products = []
+        errors = []
+        
+        for idx, row in enumerate(products_data, start=2):  # Start at 2 for spreadsheet row numbers
+            try:
+                # Validate required fields
+                if not row.get('name'):
+                    errors.append(f"Row {idx}: 'name' is required")
+                    continue
+                
+                if not row.get('unit_price'):
+                    errors.append(f"Row {idx}: 'unit_price' is required")
+                    continue
+                
+                # Parse values
+                unit_price = Decimal(str(row['unit_price']))
+                cost_price = Decimal(str(row['cost_price'])) if row.get('cost_price') else None
+                stock_quantity = int(row.get('stock_quantity', 0))
+                
+                # Parse is_active (default to True)
+                is_active_str = str(row.get('is_active', 'true')).lower()
+                is_active = is_active_str in ('true', '1', 'yes', 't', 'y')
+                
+                # Create product
+                product = Product(
+                    company_id=context.company_id,
+                    name=row['name'],
+                    description=row.get('description'),
+                    sku=row.get('sku'),
+                    unit_price=unit_price,
+                    cost_price=cost_price,
+                    stock_quantity=stock_quantity,
+                    is_active=is_active,
+                )
+                
+                db.add(product)
+                created_products.append(row['name'])
+                
+            except ValueError as e:
+                errors.append(f"Row {idx}: Invalid number format - {str(e)}")
+            except Exception as e:
+                errors.append(f"Row {idx}: {str(e)}")
+        
+        if created_products:
+            db.commit()
+        
+        return {
+            "success": True,
+            "imported": len(created_products),
+            "errors": errors,
+            "message": f"Successfully imported {len(created_products)} products"
+        }
+        
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="File encoding error. Please use UTF-8 encoding")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
 
 # ============================================================================
 # User Endpoints

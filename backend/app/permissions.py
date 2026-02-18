@@ -26,6 +26,12 @@ class PermissionKey(str, Enum):
     CUSTOMER_UPDATE = "customer:update"
     CUSTOMER_DELETE = "customer:delete"
 
+    PRODUCT_READ = "product:read"
+    PRODUCT_CREATE = "product:create"
+    PRODUCT_UPDATE = "product:update"
+    PRODUCT_DELETE = "product:delete"
+    PRODUCT_IMPORT = "product:import"
+
     AUDIT_READ = "audit:read"
 
 
@@ -46,6 +52,12 @@ PERMISSION_MATRIX: Dict[PermissionKey, FrozenSet[RoleName]] = {
     PermissionKey.CUSTOMER_CREATE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
     PermissionKey.CUSTOMER_UPDATE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
     PermissionKey.CUSTOMER_DELETE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
+
+    PermissionKey.PRODUCT_READ: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT, RoleName.SALES}),
+    PermissionKey.PRODUCT_CREATE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
+    PermissionKey.PRODUCT_UPDATE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
+    PermissionKey.PRODUCT_DELETE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
+    PermissionKey.PRODUCT_IMPORT: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
 
     PermissionKey.AUDIT_READ: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
 }

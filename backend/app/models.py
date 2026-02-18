@@ -160,6 +160,7 @@ class Company(Base):
 
     users = relationship("CompanyUser", back_populates="company", cascade="all, delete-orphan")
     customers = relationship("Customer", back_populates="company", cascade="all, delete-orphan")
+    products = relationship("Product", back_populates="company", cascade="all, delete-orphan")
     invoices = relationship("Invoice", back_populates="company", cascade="all, delete-orphan")
     commissions = relationship("Commission", back_populates="company", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="company", cascade="all, delete-orphan")
@@ -248,6 +249,39 @@ class Customer(Base):
 
     def __repr__(self):
         return f"<Customer(id={self.id}, name={self.name}, company_id={self.company_id})>"
+
+
+class Product(Base):
+    """
+    Represents a product/service that can be sold by a company.
+    Multi-tenant: scoped by company_id
+    """
+    __tablename__ = 'products'
+
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'), nullable=False, index=True)
+    name = Column(String(255), nullable=False, index=True)
+    description = Column(Text)
+    sku = Column(String(100), index=True)  # Stock Keeping Unit / Product Code
+    unit_price = Column(Numeric(12, 2), nullable=False)
+    cost_price = Column(Numeric(12, 2))  # Optional: for profit margin tracking
+    stock_quantity = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    company = relationship("Company", back_populates="products")
+
+    __table_args__ = (
+        UniqueConstraint('company_id', 'sku', name='uc_product_sku_per_company'),
+        Index('idx_product_company_name', 'company_id', 'name'),
+        CheckConstraint('unit_price >= 0', name='ck_product_unit_price_positive'),
+        CheckConstraint('cost_price >= 0', name='ck_product_cost_price_positive'),
+        CheckConstraint('stock_quantity >= 0', name='ck_product_stock_quantity_positive'),
+    )
+
+    def __repr__(self):
+        return f"<Product(id={self.id}, name={self.name}, sku={self.sku}, company_id={self.company_id})>"
 
 
 class Invoice(Base):

@@ -23,6 +23,20 @@ export interface Customer {
   updated_at: string;
 }
 
+export interface Product {
+  id: number;
+  company_id: number;
+  name: string;
+  description?: string;
+  sku?: string;
+  unit_price: number;
+  cost_price?: number;
+  stock_quantity: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface User {
   id: number;
   username: string;
@@ -99,6 +113,13 @@ export interface CompanyState {
 export interface CustomerState {
   items: Customer[];
   selectedCustomer: Customer | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface ProductState {
+  items: Product[];
+  selectedProduct: Product | null;
   loading: boolean;
   error: string | null;
 }
