@@ -1,59 +1,77 @@
-# RR-Accounting: Multi-Tenant Accounting System
+# RR-Accounting: Multi-Tenant Accounting Backend
 
-A production-grade SQLAlchemy ORM implementation for a multi-tenant SaaS accounting platform with Row-Level Security, financial safety, and comprehensive audit logging.
+Production-grade FastAPI + SQLAlchemy backend for a multi-tenant accounting SaaS platform with strict tenant isolation, RBAC enforcement, financial correctness, and auditability.
 
-## Features
+---
 
-### 🏢 Multi-Tenant Architecture
-- Company-based isolation with `company_id` field on all operational tables
-- Row-Level Security (RLS) ready for PostgreSQL
-- Tenant context enforcement via `app.current_company_id` setting
+## Overview
 
-### 💰 Financial Safety
-- **Numeric(12,2)** for all monetary fields (prevents floating-point rounding errors)
-- Commission snapshots freeze calculations at payment time
-- Invoice total preservation when users are deleted (SET NULL relationships)
-- Audit trail for compliance and forensic analysis
+RR-Accounting is designed for **backend-first** SaaS accounting workloads where correctness and access control are non-negotiable.
 
-### 🔐 Role-Based Access Control
-- **OWNER**: Full admin access, can lock/unlock invoices, approve commissions
-- **ACCOUNTANT**: Create/edit invoices, manage customers
-- **SALES**: View own commissions, limited access to sales records
+Core design goals:
 
-### 📋 Invoice Management
-- Status workflow: DRAFT → ISSUED → PAID
-- Invoice locking: Only OWNER can edit locked invoices
-- Dual user tracking: sold_by_user (sales rep) and created_by_user (accountant)
-- Line items with quantity, pricing, and discount support
-- Unique invoice numbers per company
+- Tenant-safe operations across all business entities
+- Deterministic financial calculations (no floating-point drift)
+- Explicit, enforceable RBAC boundaries
+- Immutable financial history via snapshots and audit logs
+- PostgreSQL-ready with Row-Level Security (RLS) patterns
 
-### 💼 Commission System
-- Automatic snapshot creation when invoice is marked PAID
-- Captures invoice total, commission percent, and calculated amount
-- Status workflow: PENDING → APPROVED → PAID
-- Accurate reporting prevents retroactive calculation changes
-- Full audit trail for payroll reconciliation
+---
 
-### 📝 Comprehensive Audit Logging
-- Tracks all CRUD operations on financial entities
-- Stores old_data (before) and new_data (after) in JSON
-- User reference preserved when user is deleted (SET NULL)
-- Indexes optimized for compliance queries
+## Why This Architecture
 
-### 🛡️ Data Integrity
-- CHECK constraints (commission_percent: 0-100)
-- UNIQUE constraints (invoice_number per company, customer email per company)
-- Foreign key relationships with appropriate CASCADE/SET NULL strategies
-- Strategic indexes for query performance
+This backend intentionally combines application-level authorization with database-level isolation:
 
-## Database Schema
+- **Dual isolation model**  
+  Tenant boundaries are enforced in request context (`company_id`) and can be reinforced in PostgreSQL via RLS policies.
+- **RBAC at company scope**  
+  Roles are attached through `company_users`, so permissions are contextual and multi-tenant safe.
+- **Financial integrity by type system + constraints**  
+  Monetary fields use `Numeric(12,2)`, domain constraints validate percentages/ranges, and snapshots prevent retroactive drift.
+- **Operational traceability**  
+  Audit logs capture before/after state transitions for forensic and compliance workflows.
+- **Deletion-safe data model**  
+  `SET NULL` and `CASCADE` are used intentionally to preserve financial records and user accountability where required.
 
-### Entities
+---
 
-```
+## ✨ Key Capabilities
+
+### Multi-Tenant Isolation
+- `company_id` on all operational entities
+- Tenant context binding through `app.current_company_id`
+- RLS-ready schema and policy model for PostgreSQL
+
+### Financial Safety
+- `Numeric(12,2)` for all monetary values
+- Snapshot-based commission capture at payment time
+- Invoice totals preserved when related users are deleted
+- Audit trail coverage for financial operations
+
+### RBAC
+- **OWNER**: full administrative control, lock/unlock invoices, approve/pay commissions
+- **ACCOUNTANT**: create/update invoices, manage customers
+- **SALES**: limited read access to own sales/commission scope
+
+### Invoice & Commission Workflows
+- Invoice status lifecycle: **DRAFT → ISSUED → PAID**
+- Locking model for protected edits
+- Commission lifecycle: **PENDING → APPROVED → PAID**
+- Snapshot creation on paid invoice transition
+
+### Auditability & Integrity
+- CRUD audit entries with before/after JSON payloads
+- CHECK/UNIQUE constraints for consistency
+- Targeted indexes for common read paths and compliance queries
+
+---
+
+## 🏗️ System Architecture
+
+```text
 Company
-├── CompanyUser (user roles per company)
-│   └── User (system users)
+├── CompanyUser (role + commission% per user/company)
+│   └── User (global identity)
 ├── Customer
 │   └── Invoice
 │       ├── InvoiceItem
@@ -61,27 +79,46 @@ Company
 └── AuditLog
 ```
 
+---
+
+## Database Schema
+
 ### Core Tables
 
-1. **companies** - Tenant isolation boundary
-2. **users** - System users (global, not tenant-specific)
-3. **company_users** - RBAC junction (user + role + commission% + company)
-4. **customers** - Company-specific customers
-5. **invoices** - Financial documents
-6. **invoice_items** - Line items on invoices
-7. **commissions** - Commission snapshots for paid invoices
-8. **audit_logs** - Compliance trail
+| Table | Purpose |
+|---|---|
+| `companies` | Tenant boundary |
+| `users` | Global user identity |
+| `company_users` | Tenant-role mapping + commission settings |
+| `customers` | Tenant-scoped customers |
+| `invoices` | Financial documents |
+| `invoice_items` | Invoice line items |
+| `commissions` | Commission snapshots |
+| `audit_logs` | Compliance/event trail |
 
-## Installation
+### Entity Notes
+
+- **`companies`**: root tenant entity
+- **`users`**: global identity records; tenant permissions are not stored here
+- **`company_users`**: role + commission settings by company membership
+- **`customers`**: unique email per company
+- **`invoices`**: unique invoice number per company, lock flag, paid timestamp
+- **`invoice_items`**: computed total with DB-level check
+- **`commissions`**: immutable financial snapshot fields
+- **`audit_logs`**: operation metadata + before/after payloads
+
+---
+
+## ⚙️ Installation & Setup
 
 ### Prerequisites
 - Python 3.8+
 - PostgreSQL 12+
-- pip or conda
+- `pip` or `conda`
 
-### Setup
+### Setup Steps
 
-1. Clone the repository:
+1. Clone and enter repository:
 ```bash
 cd c:\Users\barba\OneDrive\Documents\GitHub\RR-Accounting
 ```
@@ -91,85 +128,101 @@ cd c:\Users\barba\OneDrive\Documents\GitHub\RR-Accounting
 pip install sqlalchemy psycopg2-binary python-dotenv
 ```
 
-3. Configure database:
+3. Configure environment:
 ```bash
 cp .env.example .env
-# Edit .env with your PostgreSQL credentials
+# Edit .env with PostgreSQL credentials
 ```
 
-4. Create tables:
+4. Initialize schema:
 ```bash
 python models.py
 ```
 
+---
+
+## 🚀 Backend Run
+
+Backend code is organized under `backend/app`.
+
+```bash
+uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Reference API test suite:
+
+```bash
+python backend/tests/api_test_suite.py
+```
+
+---
+
+## Environment Configuration
+
+`.env` example:
+
+```env
+DB_USER=your_user
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=rr_accounting
+```
+
+Or export directly:
+
+```bash
+export DB_USER=your_user
+export DB_PASSWORD=your_password
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_NAME=rr_accounting
+```
+
+---
+
 ## Usage
 
-### Basic Setup
+### Basic Bootstrap
 
 ```python
-from models import (
-    get_database_url, 
-    create_all_tables, 
-    get_session,
-    Company, User, Invoice, Commission
-)
+from models import get_database_url, create_all_tables, get_session
+from models import Company, User, Invoice, Commission
 
-# Initialize database
 database_url = get_database_url()
 engine = create_all_tables(database_url)
 session = get_session(database_url)
 ```
 
-### Create Company with Users
+### Create Company + Memberships
 
 ```python
-from models import Company, User, CompanyUser, UserRole
 from decimal import Decimal
+from models import Company, User, CompanyUser, UserRole
 
-# Create company
 company = Company(name="Acme Corporation")
-session.add(company)
-session.flush()
+session.add(company); session.flush()
 
-# Create users
 owner = User(email="owner@acme.com", password_hash="...", full_name="John Owner")
 sales = User(email="sales@acme.com", password_hash="...", full_name="Jane Sales")
-session.add_all([owner, sales])
-session.flush()
+session.add_all([owner, sales]); session.flush()
 
-# Assign roles
-owner_role = CompanyUser(
-    company_id=company.id,
-    user_id=owner.id,
-    role=UserRole.OWNER,
-    commission_percent=Decimal('10.00')
-)
-sales_role = CompanyUser(
-    company_id=company.id,
-    user_id=sales.id,
-    role=UserRole.SALES,
-    commission_percent=Decimal('20.00')
-)
-session.add_all([owner_role, sales_role])
+session.add_all([
+    CompanyUser(company_id=company.id, user_id=owner.id, role=UserRole.OWNER, commission_percent=Decimal("10.00")),
+    CompanyUser(company_id=company.id, user_id=sales.id, role=UserRole.SALES, commission_percent=Decimal("20.00")),
+])
 session.commit()
 ```
 
-### Create Invoice with Items
+### Create Invoice + Item
 
 ```python
-from models import Customer, Invoice, InvoiceItem, InvoiceStatus
 from decimal import Decimal
+from models import Customer, Invoice, InvoiceItem, InvoiceStatus
 
-# Create customer
-customer = Customer(
-    company_id=company.id,
-    name="Big Client Inc.",
-    email="client@bigclient.com"
-)
-session.add(customer)
-session.flush()
+customer = Customer(company_id=company.id, name="Big Client Inc.", email="client@bigclient.com")
+session.add(customer); session.flush()
 
-# Create invoice
 invoice = Invoice(
     company_id=company.id,
     customer_id=customer.id,
@@ -177,97 +230,65 @@ invoice = Invoice(
     status=InvoiceStatus.DRAFT,
     sold_by_user_id=sales.id,
     created_by_user_id=owner.id,
-    total_amount=Decimal('1000.00')
+    total_amount=Decimal("1000.00"),
 )
-session.add(invoice)
-session.flush()
+session.add(invoice); session.flush()
 
-# Add line items
 item = InvoiceItem(
     invoice_id=invoice.id,
     description="Professional Services",
-    quantity=Decimal('10.00'),
-    unit_price=Decimal('100.00'),
-    discount=Decimal('0.00'),
-    total_amount=Decimal('1000.00')
+    quantity=Decimal("10.00"),
+    unit_price=Decimal("100.00"),
+    discount=Decimal("0.00"),
+    total_amount=Decimal("1000.00"),
 )
-session.add(item)
-session.commit()
+session.add(item); session.commit()
 ```
 
-### Commission Snapshots
-
-When an invoice is marked as PAID, a Commission record captures the snapshot:
+### Query Patterns
 
 ```python
-from models import Commission, CommissionStatus
-from decimal import Decimal
+from sqlalchemy import func
+from models import Invoice, InvoiceStatus, Commission, CommissionStatus, AuditLog
 
-# Before marking paid
-invoice.status = InvoiceStatus.PAID
-invoice.paid_at = datetime.utcnow()
-session.flush()
-
-# Commission snapshot created (set up event listener)
-# commission = Commission(
-#     company_id=invoice.company_id,
-#     invoice_id=invoice.id,
-#     user_id=invoice.sold_by_user_id,
-#     base_amount=invoice.total_amount,  # 1000.00
-#     percent=Decimal('20.00'),          # from CompanyUser
-#     commission_amount=Decimal('200.00'), # calculated
-#     status=CommissionStatus.PENDING
-# )
-```
-
-### Query Examples
-
-```python
-# Get company invoices by status
 draft_invoices = session.query(Invoice).filter(
     Invoice.company_id == company.id,
     Invoice.status == InvoiceStatus.DRAFT
 ).all()
 
-# Get pending commissions for a user
-user_commissions = session.query(Commission).filter(
+pending_commissions = session.query(Commission).filter(
     Commission.user_id == sales.id,
     Commission.status == CommissionStatus.PENDING
 ).all()
 
-# Get audit trail for an invoice
-audit_logs = session.query(AuditLog).filter(
+invoice_audit = session.query(AuditLog).filter(
     AuditLog.entity_type == "Invoice",
     AuditLog.entity_id == invoice.id
 ).order_by(AuditLog.created_at.desc()).all()
 
-# Calculate total commissions by status
-from sqlalchemy import func
 commission_totals = session.query(
     Commission.status,
-    func.sum(Commission.commission_amount).label('total')
+    func.sum(Commission.commission_amount).label("total")
 ).filter(
     Commission.company_id == company.id
 ).group_by(Commission.status).all()
 ```
 
-## Security Patterns
+---
 
-### 1. Row-Level Security (RLS)
+## 🔐 Security Patterns
 
-Enable PostgreSQL RLS to enforce company isolation at the database level:
+### 1) Row-Level Security (RLS)
 
 ```python
-from models import setup_rls_policies
+from models import setup_rls_policies, get_database_url
 
-# Setup RLS policies (one-time)
 setup_rls_policies(get_database_url())
-
-# Before queries, set company context:
-# SET app.current_company_id = '123';
+# For each request/session: SET app.current_company_id = '123';
 ```
 
-**RLS Policy Template:**
+RLS policy template:
+
 ```sql
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 
@@ -276,40 +297,32 @@ CREATE POLICY invoice_company_isolation ON invoices
     WITH CHECK (company_id = current_setting('app.current_company_id')::integer);
 ```
 
-### 2. Invoice Locking (RBAC)
-
-Prevent unauthorized edits to locked invoices:
+### 2) Invoice Lock Enforcement (RBAC)
 
 ```python
-# Application-level enforcement (before UPDATE)
 def update_invoice(invoice_id, user_id, company_id, updates):
     invoice = session.query(Invoice).filter_by(id=invoice_id).first()
-    
+
     if invoice.is_locked:
         user_role = session.query(CompanyUser).filter(
             CompanyUser.company_id == company_id,
             CompanyUser.user_id == user_id
         ).first()
-        
         if user_role.role != UserRole.OWNER:
             raise PermissionError("Only OWNER can edit locked invoices")
-    
-    # Apply updates
+
     session.commit()
 ```
 
-### 3. Commission Snapshots
+### 3) Commission Snapshot on Payment
 
-Create snapshots when invoices are paid (prevents retroactive changes):
-
-```python
-# Database trigger (PostgreSQL) recommended:
+```sql
 CREATE OR REPLACE FUNCTION create_commission_snapshot()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.status = 'paid' AND OLD.status != 'paid' THEN
         INSERT INTO commissions (
-            company_id, invoice_id, user_id, 
+            company_id, invoice_id, user_id,
             base_amount, percent, commission_amount, status
         ) SELECT
             NEW.company_id,
@@ -321,26 +334,23 @@ BEGIN
             'pending'
         FROM company_users cu
         WHERE cu.user_id = NEW.sold_by_user_id
-        AND cu.company_id = NEW.company_id;
+          AND cu.company_id = NEW.company_id;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER tr_invoice_paid AFTER UPDATE ON invoices
-    FOR EACH ROW
-    EXECUTE FUNCTION create_commission_snapshot();
+FOR EACH ROW
+EXECUTE FUNCTION create_commission_snapshot();
 ```
 
-### 4. Audit Trail
-
-All changes are logged automatically:
+### 4) Audit Logging
 
 ```python
-from models import AuditLog
 import json
+from models import AuditLog
 
-# Create audit entry
 audit = AuditLog(
     company_id=company.id,
     user_id=current_user.id,
@@ -348,181 +358,108 @@ audit = AuditLog(
     entity_type="Invoice",
     entity_id=invoice.id,
     old_data=json.dumps(old_values),
-    new_data=json.dumps(new_values)
+    new_data=json.dumps(new_values),
 )
 session.add(audit)
 session.commit()
-
-# Query audit trail
-history = session.query(AuditLog).filter(
-    AuditLog.entity_type == "Invoice",
-    AuditLog.entity_id == invoice.id
-).order_by(AuditLog.created_at.desc()).all()
-
-for log in history:
-    print(f"{log.action} by {log.user.full_name}")
-    print(f"  Before: {log.old_data}")
-    print(f"  After: {log.new_data}")
 ```
 
-## Financial Safety Notes
+---
 
-### Numeric vs Float
+## 💵 Financial Safety Notes
 
-All monetary amounts use `Numeric(12,2)` to prevent rounding errors:
+### Decimal-Only Money Handling
 
 ```python
 from decimal import Decimal
 
-# ✓ Correct
-invoice.total_amount = Decimal('1000.00')
-commission = Decimal('200.00')
+# Correct
+invoice.total_amount = Decimal("1000.00")
+commission = Decimal("200.00")
 
-# ✗ Wrong (floating-point errors)
-invoice.total_amount = 1000.00  # Float
-commission = 199.99999999999997  # Rounding error
+# Avoid float-based money math
+# invoice.total_amount = 1000.00
 ```
 
-### Commission Calculation
-
-Always use Decimal arithmetic for financial calculations:
+### Commission Formula
 
 ```python
-# Correct formula
-commission_amount = base_amount * (percent / Decimal('100'))
+commission_amount = base_amount * (percent / Decimal("100"))
 
-# Example
-base = Decimal('1000.00')
-percent = Decimal('20.00')
-commission = base * (percent / Decimal('100'))  # Decimal('200.00')
+base = Decimal("1000.00")
+percent = Decimal("20.00")
+commission = base * (percent / Decimal("100"))  # Decimal("200.00")
 ```
 
-## Environment Variables
+---
 
-### Backend Run & Repo Notes
+## Production Readiness
 
-- Backend code has been reorganized into the `backend` package under `backend/app`.
-- To run the FastAPI reference backend locally:
+- RBAC + tenant context enforced in service layer
+- RLS-compatible schema for DB-level isolation
+- Monetary precision with `Numeric` + `Decimal`
+- Immutable commission snapshots for payroll correctness
+- Comprehensive audit history (before/after payloads)
+- Constraint-backed integrity + indexed query paths
 
-```bash
-uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-- Integration tests (reference) live under `backend/tests/`. Run the health-check runner:
-
-```bash
-python backend/tests/api_test_suite.py
-```
-
-Configure via `.env` file:
-
-```
-DB_USER=your_user
-DB_PASSWORD=your_password
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=rr_accounting
-```
-
-Or set directly:
-
-```bash
-export DB_USER=your_user
-export DB_PASSWORD=your_password
-export DB_HOST=localhost
-export DB_PORT=5432
-export DB_NAME=rr_accounting
-
-python models.py
-```
+---
 
 ## Testing
 
-Run the integrated test/example:
+Run integrated test/demo flow:
 
 ```bash
 python models.py
 ```
 
-This creates sample data and demonstrates:
-- Company and user creation
+This exercises:
+- Company/user creation
 - Role assignment
-- Invoice creation with items
-- Audit logging
-- Query patterns
+- Invoice and line-item flows
+- Audit and query patterns
 
-## API Reference
+---
+
+## API & Model Reference
 
 ### Models
-
-- `Company` - Tenant entity
-- `User` - System user
-- `CompanyUser` - User-company junction with RBAC
-- `Customer` - Customer record
-- `Invoice` - Financial document
-- `InvoiceItem` - Line item
-- `Commission` - Commission snapshot
-- `AuditLog` - Change log
+- `Company`
+- `User`
+- `CompanyUser`
+- `Customer`
+- `Invoice`
+- `InvoiceItem`
+- `Commission`
+- `AuditLog`
 
 ### Enums
+- `UserRole`: `OWNER`, `ACCOUNTANT`, `SALES`
+- `InvoiceStatus`: `DRAFT`, `ISSUED`, `PAID`
+- `CommissionStatus`: `PENDING`, `APPROVED`, `PAID`
 
-- `UserRole`: OWNER, ACCOUNTANT, SALES
-- `InvoiceStatus`: DRAFT, ISSUED, PAID
-- `CommissionStatus`: PENDING, APPROVED, PAID
+### Utility Functions
+- `get_database_url()`
+- `create_all_tables()`
+- `get_session()`
+- `setup_rls_policies()`
 
-### Functions
+---
 
-- `get_database_url()` - Generate connection URL from env vars
-- `create_all_tables()` - Initialize database schema
-- `get_session()` - Create SQLAlchemy session
-- `setup_rls_policies()` - Enable PostgreSQL RLS
+## Engineering Best Practices
 
-## Best Practices
+1. Use `Decimal` for all money values.
+2. Always scope business queries by `company_id`.
+3. Use enum types directly in status filters.
+4. Preserve references with `SET NULL` where auditability matters.
+5. Log financial mutations with before/after payloads.
+6. Maintain UTC timestamps for all write paths.
+7. Enable and validate RLS policies in production.
 
-1. **Always use Decimal for monetary values**
-   ```python
-   from decimal import Decimal
-   amount = Decimal('100.00')  # Not 100.0
-   ```
+---
 
-2. **Filter by company_id in all queries**
-   ```python
-   session.query(Invoice).filter(
-       Invoice.company_id == current_company_id
-   )
-   ```
+## Schema Diagram (Detailed)
 
-3. **Use string values for Enum columns in queries**
-   ```python
-   session.query(Invoice).filter(
-       Invoice.status == InvoiceStatus.PAID
-   )
-   ```
-
-4. **Preserve user references with SET NULL**
-   - Don't CASCADE delete users (preserves audit trail)
-   - Use SET NULL to break relationships
-
-5. **Log all financial operations**
-   - Create AuditLog entries for invoices, commissions, payments
-   - Include old_data and new_data as JSON
-
-6. **Use timestamps for audit**
-   ```python
-   from datetime import datetime
-   invoice.created_at = datetime.utcnow()
-   invoice.updated_at = datetime.utcnow()
-   invoice.paid_at = datetime.utcnow()
-   ```
-
-7. **Enable RLS in production**
-   ```python
-   setup_rls_policies(DATABASE_URL)
-   ```
-
-## Schema Diagram
-
-```
+```text
 companies
 ├── id (PK)
 ├── name
@@ -606,19 +543,22 @@ audit_logs
 └── created_at
 ```
 
+---
+
 ## Contributing
 
-This is a reference implementation. Feel free to fork and extend for your needs.
+This is a reference implementation intended for extension.  
+Fork and adapt to your compliance, tenancy, and operational requirements.
 
 ## License
 
-MIT License - See LICENSE file for details
+MIT License — see `LICENSE`.
 
 ## Support
 
-For issues or questions, please create an issue in the repository or contact the development team.
+Open an issue in the repository for bugs, architecture questions, or implementation help.
 
 ---
 
-**Last Updated:** February 17, 2026
+**Last Updated:** February 18, 2026  
 **Version:** 1.0.0
