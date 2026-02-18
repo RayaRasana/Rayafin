@@ -36,6 +36,10 @@ from decimal import Decimal, ROUND_HALF_UP
 from enum import Enum as PyEnum
 from typing import Optional
 import json
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from sqlalchemy import (
     Column, Integer, String, Numeric, Boolean, DateTime, Text,
@@ -85,7 +89,7 @@ def get_database_url(
     p = port or int(os.getenv("DB_PORT", "5432"))
     db = database or os.getenv("DB_NAME", "accounting_db")
     
-    return f"postgresql://{user}:{pwd}@{h}:{p}/{db}"
+    return f"postgresql+psycopg://{user}:{pwd}@{h}:{p}/{db}"
 
 # ============================================================================
 # ENUMS

@@ -16,13 +16,15 @@ Or: python -m uvicorn backend.app.main:app --reload
 Then test with: python api_test_suite.py
 """
 
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, HTTPException, Query, status, Depends
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Any
 from decimal import Decimal
 from datetime import datetime
 import uuid
+import bcrypt
 
 # Import corrected models
 from backend.app.models import (
@@ -31,7 +33,7 @@ from backend.app.models import (
     get_session, get_database_url
 )
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session
 
 # ============================================================================
@@ -42,6 +44,15 @@ app = FastAPI(
     title="RR-Accounting API",
     description="Multi-tenant accounting system with audit trail",
     version="1.0.0"
+)
+
+# Add CORS Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins (for development, restrict in production)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Create database engine
@@ -64,22 +75,13 @@ def get_db():
 
 class CompanyCreate(BaseModel):
     name: str
-    email: str
-    phone: Optional[str] = None
-    address: Optional[str] = None
 
 class CompanyUpdate(BaseModel):
     name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
 
 class CompanyResponse(BaseModel):
-    id: str
+    id: int
     name: str
-    email: str
-    phone: Optional[str]
-    address: Optional[str]
     created_at: datetime
     updated_at: datetime
     
@@ -87,25 +89,16 @@ class CompanyResponse(BaseModel):
         from_attributes = True
 
 class CustomerCreate(BaseModel):
-    company_id: str
+    company_id: int
     name: str
-    email: str
-    phone: Optional[str] = None
-    address: Optional[str] = None
 
 class CustomerUpdate(BaseModel):
     name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
 
 class CustomerResponse(BaseModel):
-    id: str
-    company_id: str
+    id: int
+    company_id: int
     name: str
-    email: str
-    phone: Optional[str]
-    address: Optional[str]
     created_at: datetime
     updated_at: datetime
     
@@ -114,16 +107,14 @@ class CustomerResponse(BaseModel):
 
 class UserCreate(BaseModel):
     email: str
-    first_name: str
-    last_name: str
-    role: str  # owner, accountant, sales
+    full_name: str
+    password: str
 
 class UserResponse(BaseModel):
-    id: str
+    id: int
     email: str
-    first_name: str
-    last_name: str
-    role: str
+    full_name: str
+    is_active: bool
     created_at: datetime
     updated_at: datetime
     
@@ -131,14 +122,15 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 class CompanyUserCreate(BaseModel):
-    company_id: str
-    user_id: str
+    company_id: int
+    user_id: int
     commission_percent: Decimal = Field(default="0.00")
 
 class CompanyUserResponse(BaseModel):
-    id: str
-    company_id: str
-    user_id: str
+    id: int
+    company_id: int
+    user_id: int
+    role: str
     commission_percent: Decimal
     created_at: datetime
     updated_at: datetime
@@ -147,9 +139,9 @@ class CompanyUserResponse(BaseModel):
         from_attributes = True
 
 class InvoiceCreate(BaseModel):
-    company_id: str
-    customer_id: str
-    sold_by_user_id: Optional[str] = None
+    company_id: int
+    customer_id: int
+    sold_by_user_id: Optional[int] = None
     status: str = "draft"
     total_amount: Decimal = Field(default="0.00")
     notes: Optional[str] = None
@@ -160,12 +152,12 @@ class InvoiceUpdate(BaseModel):
     notes: Optional[str] = None
 
 class InvoiceResponse(BaseModel):
-    id: str
+    id: int
     invoice_number: str
-    company_id: str
-    customer_id: str
-    sold_by_user_id: Optional[str]
-    created_by_user_id: Optional[str]
+    company_id: int
+    customer_id: int
+    sold_by_user_id: Optional[int]
+    created_by_user_id: Optional[int]
     status: str
     total_amount: Decimal
     notes: Optional[str]
@@ -176,7 +168,7 @@ class InvoiceResponse(BaseModel):
         from_attributes = True
 
 class InvoiceItemCreate(BaseModel):
-    invoice_id: str
+    invoice_id: int
     product_name: str
     quantity: Decimal
     unit_price: Decimal
@@ -184,8 +176,8 @@ class InvoiceItemCreate(BaseModel):
     total_amount: Decimal
 
 class InvoiceItemResponse(BaseModel):
-    id: str
-    invoice_id: str
+    id: int
+    invoice_id: int
     product_name: str
     quantity: Decimal
     unit_price: Decimal
@@ -198,10 +190,10 @@ class InvoiceItemResponse(BaseModel):
         from_attributes = True
 
 class CommissionResponse(BaseModel):
-    id: str
-    invoice_id: Optional[str]
-    user_id: Optional[str]
-    company_id: str
+    id: int
+    invoice_id: Optional[int]
+    user_id: Optional[int]
+    company_id: int
     base_amount: Decimal
     percent: Decimal
     commission_amount: Decimal
@@ -213,11 +205,11 @@ class CommissionResponse(BaseModel):
         from_attributes = True
 
 class AuditLogResponse(BaseModel):
-    id: str
+    id: int
     entity_type: str
-    entity_id: str
+    entity_id: int
     action: str
-    user_id: Optional[str]
+    user_id: Optional[int]
     old_data: Optional[dict]
     new_data: Optional[dict]
     timestamp: datetime
@@ -226,16 +218,113 @@ class AuditLogResponse(BaseModel):
         from_attributes = True
 
 # ============================================================================
+# Authentication Models
+# ============================================================================
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class LoginResponse(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    is_active: bool
+    token: str = "token"  # In real app, this would be JWT
+    
+    class Config:
+        from_attributes = True
+
+class MeResponse(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    is_active: bool
+    
+    class Config:
+        from_attributes = True
+
+# ============================================================================
 # Health Check
 # ============================================================================
 
-@app.get("/health", status_code=200)
-async def health_check():
-    """Health check endpoint."""
+@app.get("/health", status_code=200, response_model=None)
+async def health_check(db: Session = Depends(get_db)):
+    """Health check endpoint with database connectivity test."""
+    try:
+        # Test database connection
+        db.execute(text("SELECT 1"))
+        return {
+            "status": "ok",
+            "database": "connected",
+            "message": "RR-Accounting API is running",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "database": "disconnected",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+        )
+
+# ============================================================================
+# Authentication Endpoints
+# ============================================================================
+
+@app.post("/api/auth/login", response_model=LoginResponse, status_code=200)
+async def login(credentials: LoginRequest, db: Any = None):
+    """Login user with email and password."""
+    if db is None:
+        db = next(get_db())
+    
+    # Find user by email
+    user = db.query(User).filter(User.email == credentials.email).first()
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    if not user.is_active:
+        raise HTTPException(status_code=401, detail="User account is inactive")
+    
+    # Verify password
+    try:
+        if not bcrypt.checkpw(credentials.password.encode('utf-8'), user.password_hash.encode('utf-8')):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Return user info with token
     return {
-        "status": "healthy",
-        "message": "RR-Accounting API is running",
-        "timestamp": datetime.now().isoformat()
+        "id": user.id,
+        "email": user.email,
+        "full_name": user.full_name,
+        "is_active": user.is_active,
+        "token": f"token_{user.id}"  # Simple token format
+    }
+
+@app.get("/api/auth/me", response_model=MeResponse)
+async def get_current_user(user_id: int = Query(...), token: str = Query(...), db: Any = None):
+    """Get current logged-in user info."""
+    if db is None:
+        db = next(get_db())
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    if not user.is_active:
+        raise HTTPException(status_code=401, detail="User account is inactive")
+    
+    return {
+        "id": user.id,
+        "email": user.email,
+        "full_name": user.full_name,
+        "is_active": user.is_active
     }
 
 # ============================================================================
@@ -243,7 +332,7 @@ async def health_check():
 # ============================================================================
 
 @app.post("/api/companies", response_model=CompanyResponse, status_code=201)
-async def create_company(company: CompanyCreate, db: Session = None):
+async def create_company(company: CompanyCreate, db: Any = None):
     """Create a new company."""
     if db is None:
         db = next(get_db())
@@ -260,7 +349,7 @@ async def create_company(company: CompanyCreate, db: Session = None):
     return new_company
 
 @app.get("/api/companies", response_model=List[CompanyResponse])
-async def list_companies(skip: int = Query(0), limit: int = Query(10), db: Session = None):
+async def list_companies(skip: int = Query(0), limit: int = Query(10), db: Any = None):
     """List all companies."""
     if db is None:
         db = next(get_db())
@@ -269,7 +358,7 @@ async def list_companies(skip: int = Query(0), limit: int = Query(10), db: Sessi
     return companies
 
 @app.get("/api/companies/{company_id}", response_model=CompanyResponse)
-async def get_company(company_id: str, db: Session = None):
+async def get_company(company_id: int, db: Any = None):
     """Get a company by ID."""
     if db is None:
         db = next(get_db())
@@ -280,7 +369,7 @@ async def get_company(company_id: str, db: Session = None):
     return company
 
 @app.put("/api/companies/{company_id}", response_model=CompanyResponse)
-async def update_company(company_id: str, company_update: CompanyUpdate, db: Session = None):
+async def update_company(company_id: int, company_update: CompanyUpdate, db: Any = None):
     """Update a company."""
     if db is None:
         db = next(get_db())
@@ -291,12 +380,6 @@ async def update_company(company_id: str, company_update: CompanyUpdate, db: Ses
     
     if company_update.name:
         company.name = company_update.name
-    if company_update.email:
-        company.email = company_update.email
-    if company_update.phone:
-        company.phone = company_update.phone
-    if company_update.address:
-        company.address = company_update.address
     
     db.commit()
     db.refresh(company)
@@ -307,17 +390,14 @@ async def update_company(company_id: str, company_update: CompanyUpdate, db: Ses
 # ============================================================================
 
 @app.post("/api/customers", response_model=CustomerResponse, status_code=201)
-async def create_customer(customer: CustomerCreate, db: Session = None):
+async def create_customer(customer: CustomerCreate, db: Any = None):
     """Create a new customer."""
     if db is None:
         db = next(get_db())
     
     new_customer = Customer(
         company_id=customer.company_id,
-        name=customer.name,
-        email=customer.email,
-        phone=customer.phone,
-        address=customer.address
+        name=customer.name
     )
     db.add(new_customer)
     db.commit()
@@ -325,7 +405,7 @@ async def create_customer(customer: CustomerCreate, db: Session = None):
     return new_customer
 
 @app.get("/api/customers", response_model=List[CustomerResponse])
-async def list_customers(company_id: Optional[str] = None, skip: int = Query(0), limit: int = Query(10), db: Session = None):
+async def list_customers(company_id: Optional[int] = None, skip: int = Query(0), limit: int = Query(10), db: Any = None):
     """List customers."""
     if db is None:
         db = next(get_db())
@@ -338,7 +418,7 @@ async def list_customers(company_id: Optional[str] = None, skip: int = Query(0),
     return customers
 
 @app.get("/api/customers/{customer_id}", response_model=CustomerResponse)
-async def get_customer(customer_id: str, db: Session = None):
+async def get_customer(customer_id: int, db: Any = None):
     """Get a customer by ID."""
     if db is None:
         db = next(get_db())
@@ -349,7 +429,7 @@ async def get_customer(customer_id: str, db: Session = None):
     return customer
 
 @app.put("/api/customers/{customer_id}", response_model=CustomerResponse)
-async def update_customer(customer_id: str, customer_update: CustomerUpdate, db: Session = None):
+async def update_customer(customer_id: int, customer_update: CustomerUpdate, db: Any = None):
     """Update a customer."""
     if db is None:
         db = next(get_db())
@@ -360,12 +440,6 @@ async def update_customer(customer_id: str, customer_update: CustomerUpdate, db:
     
     if customer_update.name:
         customer.name = customer_update.name
-    if customer_update.email:
-        customer.email = customer_update.email
-    if customer_update.phone:
-        customer.phone = customer_update.phone
-    if customer_update.address:
-        customer.address = customer_update.address
     
     db.commit()
     db.refresh(customer)
@@ -376,16 +450,19 @@ async def update_customer(customer_id: str, customer_update: CustomerUpdate, db:
 # ============================================================================
 
 @app.post("/api/users", response_model=UserResponse, status_code=201)
-async def create_user(user: UserCreate, db: Session = None):
+async def create_user(user: UserCreate, db: Any = None):
     """Create a new user."""
     if db is None:
         db = next(get_db())
     
+    # Hash the password
+    password_hash = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
     new_user = User(
         email=user.email,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        role=user.role
+        full_name=user.full_name,
+        password_hash=password_hash,
+        is_active=True
     )
     db.add(new_user)
     db.commit()
@@ -393,7 +470,7 @@ async def create_user(user: UserCreate, db: Session = None):
     return new_user
 
 @app.get("/api/users", response_model=List[UserResponse])
-async def list_users(skip: int = Query(0), limit: int = Query(10), db: Session = None):
+async def list_users(skip: int = Query(0), limit: int = Query(10), db: Any = None):
     """List all users."""
     if db is None:
         db = next(get_db())
@@ -402,7 +479,7 @@ async def list_users(skip: int = Query(0), limit: int = Query(10), db: Session =
     return users
 
 @app.get("/api/users/{user_id}", response_model=UserResponse)
-async def get_user(user_id: str, db: Session = None):
+async def get_user(user_id: int, db: Any = None):
     """Get a user by ID."""
     if db is None:
         db = next(get_db())
@@ -413,7 +490,7 @@ async def get_user(user_id: str, db: Session = None):
     return user
 
 @app.delete("/api/users/{user_id}", status_code=204)
-async def delete_user(user_id: str, db: Session = None):
+async def delete_user(user_id: int, db: Any = None):
     """Delete a user (preserves invoices, commissions via FK SET NULL)."""
     if db is None:
         db = next(get_db())
@@ -431,7 +508,7 @@ async def delete_user(user_id: str, db: Session = None):
 # ============================================================================
 
 @app.post("/api/company-users", response_model=CompanyUserResponse, status_code=201)
-async def assign_user_to_company(company_user: CompanyUserCreate, db: Session = None):
+async def assign_user_to_company(company_user: CompanyUserCreate, db: Any = None):
     """Assign user to company with commission percentage."""
     if db is None:
         db = next(get_db())
@@ -451,7 +528,7 @@ async def assign_user_to_company(company_user: CompanyUserCreate, db: Session = 
 # ============================================================================
 
 @app.post("/api/invoices", response_model=InvoiceResponse, status_code=201)
-async def create_invoice(invoice: InvoiceCreate, db: Session = None):
+async def create_invoice(invoice: InvoiceCreate, db: Any = None):
     """Create a new invoice."""
     if db is None:
         db = next(get_db())
@@ -471,11 +548,11 @@ async def create_invoice(invoice: InvoiceCreate, db: Session = None):
 
 @app.get("/api/invoices", response_model=List[InvoiceResponse])
 async def list_invoices(
-    company_id: Optional[str] = None,
-    sold_by_user_id: Optional[str] = None,
+    company_id: Optional[int] = None,
+    sold_by_user_id: Optional[int] = None,
     skip: int = Query(0),
     limit: int = Query(10),
-    db: Session = None
+    db: Any = None
 ):
     """List invoices."""
     if db is None:
@@ -491,7 +568,7 @@ async def list_invoices(
     return invoices
 
 @app.get("/api/invoices/{invoice_id}", response_model=InvoiceResponse)
-async def get_invoice(invoice_id: str, db: Session = None):
+async def get_invoice(invoice_id: int, db: Any = None):
     """Get an invoice by ID."""
     if db is None:
         db = next(get_db())
@@ -502,7 +579,7 @@ async def get_invoice(invoice_id: str, db: Session = None):
     return invoice
 
 @app.put("/api/invoices/{invoice_id}", response_model=InvoiceResponse)
-async def update_invoice(invoice_id: str, invoice_update: InvoiceUpdate, db: Session = None):
+async def update_invoice(invoice_id: int, invoice_update: InvoiceUpdate, db: Any = None):
     """Update an invoice (triggers commission snapshot if status → PAID)."""
     if db is None:
         db = next(get_db())
@@ -527,7 +604,7 @@ async def update_invoice(invoice_id: str, invoice_update: InvoiceUpdate, db: Ses
 # ============================================================================
 
 @app.post("/api/invoice-items", response_model=InvoiceItemResponse, status_code=201)
-async def create_invoice_item(item: InvoiceItemCreate, db: Session = None):
+async def create_invoice_item(item: InvoiceItemCreate, db: Any = None):
     """Create an invoice item with validation (Issue #1)."""
     if db is None:
         db = next(get_db())
@@ -556,7 +633,7 @@ async def create_invoice_item(item: InvoiceItemCreate, db: Session = None):
     return new_item
 
 @app.get("/api/invoice-items")
-async def list_invoice_items(invoice_id: str, db: Session = None):
+async def list_invoice_items(invoice_id: int, db: Any = None):
     """List invoice items."""
     if db is None:
         db = next(get_db())
@@ -570,11 +647,11 @@ async def list_invoice_items(invoice_id: str, db: Session = None):
 
 @app.get("/api/commissions", response_model=List[CommissionResponse])
 async def list_commissions(
-    invoice_id: Optional[str] = None,
-    user_id: Optional[str] = None,
+    invoice_id: Optional[int] = None,
+    user_id: Optional[int] = None,
     skip: int = Query(0),
     limit: int = Query(10),
-    db: Session = None
+    db: Any = None
 ):
     """List commissions."""
     if db is None:
@@ -590,7 +667,7 @@ async def list_commissions(
     return commissions
 
 @app.get("/api/commissions/{commission_id}", response_model=CommissionResponse)
-async def get_commission(commission_id: str, db: Session = None):
+async def get_commission(commission_id: int, db: Any = None):
     """Get a commission by ID."""
     if db is None:
         db = next(get_db())
@@ -607,10 +684,10 @@ async def get_commission(commission_id: str, db: Session = None):
 @app.get("/api/audit-logs", response_model=List[AuditLogResponse])
 async def list_audit_logs(
     entity_type: Optional[str] = None,
-    entity_id: Optional[str] = None,
+    entity_id: Optional[int] = None,
     skip: int = Query(0),
     limit: int = Query(10),
-    db: Session = None
+    db: Any = None
 ):
     """List audit logs."""
     if db is None:
