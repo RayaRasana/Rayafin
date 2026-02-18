@@ -22,6 +22,8 @@ import {
   Stack,
   Chip,
   Collapse,
+  Card,
+  Typography,
 } from "@mui/material";
 import {
   Edit,
@@ -189,56 +191,169 @@ export const InvoiceList: React.FC = () => {
 
   return (
     <Box sx={{ direction: "rtl" }}>
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{ mb: 3 }}
-        justifyContent="space-between"
+      {/* Header */}
+      <Card
+        sx={{
+          mb: 3,
+          p: 3,
+          background: "linear-gradient(135deg, #2e5090 0%, #3d6ca8 100%)",
+          color: "white",
+          borderRadius: "16px",
+          boxShadow: "0 4px 20px rgba(46, 80, 144, 0.25)",
+        }}
       >
-        <Box sx={{ minWidth: 200 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>{PERSIAN_LABELS.companies}</InputLabel>
-            <Select
-              value={selectedCompanyId}
-              label={PERSIAN_LABELS.companies}
-              onChange={(e) => setSelectedCompanyId(e.target.value as number)}
-            >
-              {companies.map((company) => (
-                <MenuItem key={company.id} value={company.id}>
-                  {company.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-        <RoleGuard permission="invoice:create">
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={handleAddClick}
-            disabled={!canCreateInvoices}
-          >
-            {PERSIAN_LABELS.addInvoice}
-          </Button>
-        </RoleGuard>
-      </Stack>
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{ justifyContent: "space-between", alignItems: "center" }}
+        >
+          <Typography variant="h4" sx={{ fontWeight: 700, color: "white" }}>
+            {PERSIAN_LABELS.invoices}
+          </Typography>
+          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+            <Box sx={{ minWidth: 220 }}>
+              <FormControl
+                fullWidth
+                size="small"
+                sx={{
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  borderRadius: "10px",
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                      borderColor: "transparent",
+                    },
+                  },
+                }}
+              >
+                <InputLabel>{PERSIAN_LABELS.companies}</InputLabel>
+                <Select
+                  value={selectedCompanyId}
+                  label={PERSIAN_LABELS.companies}
+                  onChange={(e) => setSelectedCompanyId(e.target.value as number)}
+                >
+                  {companies.map((company) => (
+                    <MenuItem key={company.id} value={company.id}>
+                      {company.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <RoleGuard permission="invoice:create">
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={handleAddClick}
+                disabled={!canCreateInvoices}
+                sx={{
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  color: "#2e5090",
+                  fontWeight: 700,
+                  borderRadius: "12px",
+                  px: 3,
+                  py: 1.2,
+                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
+                  transition: "all 0.3s ease",
 
-      <TableContainer component={Paper}>
+                  "&:hover": {
+                    backgroundColor: "white",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 6px 24px rgba(0, 0, 0, 0.25)",
+                  },
+                  "&:disabled": {
+                    backgroundColor: "rgba(255, 255, 255, 0.5)",
+                    color: "#94a3b8",
+                  },
+                }}
+              >
+                {PERSIAN_LABELS.addInvoice}
+              </Button>
+            </RoleGuard>
+          </Stack>
+        </Stack>
+      </Card>
+
+      <TableContainer
+        component={Paper}
+        sx={{
+          borderRadius: "16px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          overflow: "hidden",
+        }}
+      >
         <Table>
-          <TableHead sx={{ bgcolor: "#f5f5f5" }}>
+          <TableHead sx={{ backgroundColor: "#f0f4f8" }}>
             <TableRow>
               <TableCell sx={{ width: "50px" }} />
-              <TableCell align="right">
+              <TableCell
+                align="right"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  color: "#2e5090",
+                }}
+              >
                 {PERSIAN_LABELS.invoiceNumber}
               </TableCell>
-              <TableCell align="right">{PERSIAN_LABELS.customers}</TableCell>
-              <TableCell align="right">
+              <TableCell
+                align="right"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  color: "#2e5090",
+                }}
+              >
+                {PERSIAN_LABELS.customers}
+              </TableCell>
+              <TableCell
+                align="right"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  color: "#2e5090",
+                }}
+              >
                 {PERSIAN_LABELS.invoiceDate}
               </TableCell>
-              <TableCell align="right">{PERSIAN_LABELS.dueDate}</TableCell>
-              <TableCell align="right">{PERSIAN_LABELS.totalAmount}</TableCell>
-              <TableCell align="right">{PERSIAN_LABELS.status}</TableCell>
-              <TableCell align="center" sx={{ width: "150px" }}>
+              <TableCell
+                align="right"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  color: "#2e5090",
+                }}
+              >
+                {PERSIAN_LABELS.dueDate}
+              </TableCell>
+              <TableCell
+                align="right"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  color: "#2e5090",
+                }}
+              >
+                {PERSIAN_LABELS.totalAmount}
+              </TableCell>
+              <TableCell
+                align="right"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  color: "#2e5090",
+                }}
+              >
+                {PERSIAN_LABELS.status}
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{
+                  width: "150px",
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  color: "#2e5090",
+                }}
+              >
                 {PERSIAN_LABELS.edit}
               </TableCell>
             </TableRow>

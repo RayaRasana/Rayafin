@@ -267,6 +267,8 @@ export const ProductList: React.FC = () => {
           p: 3,
           background: "linear-gradient(135deg, #2e5090 0%, #3d6ca8 100%)",
           color: "white",
+          borderRadius: "16px",
+          boxShadow: "0 4px 20px rgba(46, 80, 144, 0.25)",
         }}
       >
         <Stack
@@ -274,15 +276,23 @@ export const ProductList: React.FC = () => {
           spacing={2}
           sx={{ justifyContent: "space-between", alignItems: "center" }}
         >
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: "white" }}>
             {PERSIAN_LABELS.products}
           </Typography>
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            <Box sx={{ minWidth: 200 }}>
+            <Box sx={{ minWidth: 220 }}>
               <FormControl
                 fullWidth
                 size="small"
-                sx={{ backgroundColor: "white", borderRadius: "8px" }}
+                sx={{
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  borderRadius: "10px",
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                      borderColor: "transparent",
+                    },
+                  },
+                }}
               >
                 <InputLabel>{PERSIAN_LABELS.company}</InputLabel>
                 <Select
@@ -305,10 +315,17 @@ export const ProductList: React.FC = () => {
                 onClick={handleImportClick}
                 sx={{
                   color: "white",
-                  borderColor: "white",
+                  borderColor: "rgba(255, 255, 255, 0.8)",
+                  fontWeight: 600,
+                  borderRadius: "10px",
+                  px: 2.5,
+                  borderWidth: 2,
+                  transition: "all 0.3s ease",
                   "&:hover": {
                     borderColor: "white",
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    backgroundColor: "rgba(255, 255, 255, 0.15)",
+                    borderWidth: 2,
+                    transform: "translateY(-2px)",
                   },
                 }}
               >
@@ -321,10 +338,19 @@ export const ProductList: React.FC = () => {
                 startIcon={<Add />}
                 onClick={handleAddClick}
                 sx={{
-                  backgroundColor: "white",
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
                   color: "#2e5090",
+                  fontWeight: 700,
+                  borderRadius: "12px",
+                  px: 3,
+                  py: 1.2,
+                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
+                  transition: "all 0.3s ease",
+
                   "&:hover": {
-                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    backgroundColor: "white",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 6px 24px rgba(0, 0, 0, 0.25)",
                   },
                 }}
               >
@@ -336,19 +362,25 @@ export const ProductList: React.FC = () => {
       </Card>
 
       {/* Products Table */}
-      <Card>
+      <Card
+        sx={{
+          borderRadius: "16px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          overflow: "hidden",
+        }}
+      >
         <TableContainer component={Paper}>
           <Table>
-            <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableHead sx={{ backgroundColor: "#f0f4f8" }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>کد محصول</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{PERSIAN_LABELS.productName}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>توضیحات</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>قیمت فروش</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>موجودی</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>وضعیت</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{PERSIAN_LABELS.company}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>عملیات</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>کد محصول</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>{PERSIAN_LABELS.productName}</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>توضیحات</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>قیمت فروش</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>موجودی</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>وضعیت</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>{PERSIAN_LABELS.company}</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem", textAlign: "center" }}>عملیات</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

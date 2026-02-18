@@ -2,7 +2,7 @@ import { createTheme } from "@mui/material/styles";
 
 // Rayarasana Brand Colors - Professional Accounting System
 const rayarasanaColors = {
-  primary: "#2e5090", // Deep professional blue
+  primary: "rgb(255, 255, 255)", // Deep professional blue
   primaryLight: "#3d6ca8",
   primaryDark: "#1f3860",
   secondary: "#6366f1", // Modern indigo

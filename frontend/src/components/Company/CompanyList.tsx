@@ -156,6 +156,8 @@ export const CompanyList: React.FC = () => {
           p: 3,
           background: "linear-gradient(135deg, #2e5090 0%, #3d6ca8 100%)",
           color: "white",
+          borderRadius: "16px",
+          boxShadow: "0 4px 20px rgba(46, 80, 144, 0.25)",
         }}
       >
         <Box
@@ -165,7 +167,7 @@ export const CompanyList: React.FC = () => {
             alignItems: "center",
           }}
         >
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: "white" }}>
             {PERSIAN_LABELS.companies}
           </Typography>
           {canCreateCompany && (
@@ -174,15 +176,19 @@ export const CompanyList: React.FC = () => {
               startIcon={<Add />}
               onClick={handleAddClick}
               sx={{
-                backgroundColor: "white",
+                backgroundColor: "rgba(255, 255, 255, 0.95)",
                 color: "#2e5090",
-                fontWeight: 600,
+                fontWeight: 700,
                 borderRadius: "12px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                px: 3,
+                py: 1.2,
+                boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
+                transition: "all 0.3s ease",
 
                 "&:hover": {
-                  backgroundColor: "#f0f9ff",
-                  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
+                  backgroundColor: "white",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 6px 24px rgba(0, 0, 0, 0.25)",
                 },
               }}
             >
@@ -215,12 +221,13 @@ export const CompanyList: React.FC = () => {
           component={Paper}
           sx={{
             borderRadius: "16px",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+            overflow: "hidden",
           }}
         >
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+              <TableRow sx={{ backgroundColor: "#f0f4f8" }}>
                 <TableCell
                   align="right"
                   sx={{
@@ -378,13 +385,23 @@ export const CompanyList: React.FC = () => {
             <Typography>{PERSIAN_LABELS.confirmDelete}</Typography>
           </DialogContent>
           <DialogActions sx={{ p: 2, gap: 1 }}>
-            <Button onClick={handleCloseDeleteDialog}>
+            <Button
+              onClick={handleCloseDeleteDialog}
+              sx={{
+                color: "#64748b",
+                fontWeight: 600,
+              }}
+            >
               {PERSIAN_LABELS.cancel}
             </Button>
             <Button
               onClick={handleConfirmDelete}
               color="error"
               variant="contained"
+              sx={{
+                fontWeight: 600,
+                px: 3,
+              }}
             >
               {PERSIAN_LABELS.delete}
             </Button>

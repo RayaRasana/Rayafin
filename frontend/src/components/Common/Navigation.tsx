@@ -9,6 +9,7 @@ import {
   MenuItem,
   Avatar,
   Divider,
+  Container,
 } from "@mui/material";
 import { ExitToApp, Person } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -52,32 +53,34 @@ export const Navigation: React.FC = () => {
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
       }}
     >
-      <Toolbar
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0.75rem 1.5rem",
-        }}
-      >
-        {/* Logo/Title */}
-        <Typography
-          variant="h5"
+      <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+        <Toolbar
+          disableGutters
           sx={{
-            fontWeight: 700,
-            color: "white",
-            fontSize: "1.25rem",
-            cursor: "pointer",
-            transition: "opacity 0.3s ease",
-
-            "&:hover": {
-              opacity: 0.8,
-            },
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0.75rem 0",
           }}
-          onClick={() => handleNavigate("/")}
         >
-          رایافین
-        </Typography>
+          {/* Logo/Title */}
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 700,
+              color: "white",
+              fontSize: "1.25rem",
+              cursor: "pointer",
+              transition: "opacity 0.3s ease",
+
+              "&:hover": {
+                opacity: 0.8,
+              },
+            }}
+            onClick={() => handleNavigate("/")}
+          >
+            رایافین
+          </Typography>
 
         {/* Navigation Links */}
         <Box sx={{ display: "flex", gap: 1 }}>
@@ -261,6 +264,7 @@ export const Navigation: React.FC = () => {
           </Menu>
         </Box>
       </Toolbar>
+      </Container>
     </AppBar>
   );
 };

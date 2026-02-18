@@ -185,6 +185,8 @@ export const CustomerList: React.FC = () => {
           p: 3,
           background: "linear-gradient(135deg, #2e5090 0%, #3d6ca8 100%)",
           color: "white",
+          borderRadius: "16px",
+          boxShadow: "0 4px 20px rgba(46, 80, 144, 0.25)",
         }}
       >
         <Stack
@@ -192,12 +194,24 @@ export const CustomerList: React.FC = () => {
           spacing={2}
           sx={{ justifyContent: "space-between", alignItems: "center" }}
         >
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: "white" }}>
             {PERSIAN_LABELS.customers}
           </Typography>
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            <Box sx={{ minWidth: 200 }}>
-              <FormControl fullWidth size="small" sx={{ backgroundColor: "white", borderRadius: "8px" }}>
+            <Box sx={{ minWidth: 220 }}>
+              <FormControl
+                fullWidth
+                size="small"
+                sx={{
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  borderRadius: "10px",
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                      borderColor: "transparent",
+                    },
+                  },
+                }}
+              >
                 <InputLabel>{PERSIAN_LABELS.companies}</InputLabel>
                 <Select
                   value={selectedCompanyId}
@@ -218,15 +232,19 @@ export const CustomerList: React.FC = () => {
                 startIcon={<Add />}
                 onClick={handleAddClick}
                 sx={{
-                  backgroundColor: "white",
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
                   color: "#2e5090",
-                  fontWeight: 600,
+                  fontWeight: 700,
                   borderRadius: "12px",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                  px: 3,
+                  py: 1.2,
+                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
+                  transition: "all 0.3s ease",
 
                   "&:hover": {
-                    backgroundColor: "#f0f9ff",
-                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
+                    backgroundColor: "white",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 6px 24px rgba(0, 0, 0, 0.25)",
                   },
                 }}
               >
@@ -260,12 +278,13 @@ export const CustomerList: React.FC = () => {
           component={Paper}
           sx={{
             borderRadius: "16px",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+            overflow: "hidden",
           }}
         >
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+              <TableRow sx={{ backgroundColor: "#f0f4f8" }}>
                 <TableCell
                   align="right"
                   sx={{
