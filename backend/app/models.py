@@ -110,6 +110,9 @@ class UserRole(PyEnum):
     SALES = "sales"
 
 
+ENUM_VALUE_MAPPER = lambda enum_cls: [item.value for item in enum_cls]
+
+
 class InvoiceStatus(PyEnum):
     """
     Invoice lifecycle status.
@@ -202,7 +205,11 @@ class CompanyUser(Base):
     id = Column(Integer, primary_key=True, index=True)
     company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'), nullable=False, index=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
-    role = Column(Enum(UserRole), default=UserRole.ACCOUNTANT, nullable=False)
+    role = Column(
+        Enum(UserRole, values_callable=ENUM_VALUE_MAPPER),
+        default=UserRole.ACCOUNTANT,
+        nullable=False
+    )
     commission_percent = Column(Numeric(5, 2), default=Decimal('20.00'), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -250,7 +257,12 @@ class Invoice(Base):
     company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'), nullable=False, index=True)
     customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'), nullable=False, index=True)
     invoice_number = Column(String(50), nullable=False, index=True)
-    status = Column(Enum(InvoiceStatus), default=InvoiceStatus.DRAFT, nullable=False, index=True)
+    status = Column(
+        Enum(InvoiceStatus, values_callable=ENUM_VALUE_MAPPER),
+        default=InvoiceStatus.DRAFT,
+        nullable=False,
+        index=True
+    )
     sold_by_user_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_by_user_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     total_amount = Column(Numeric(12, 2), default=Decimal('0.00'), nullable=False)
@@ -341,7 +353,12 @@ class Commission(Base):
     base_amount = Column(Numeric(12, 2), nullable=False)
     percent = Column(Numeric(5, 2), default=Decimal('20.00'), nullable=False)
     commission_amount = Column(Numeric(12, 2), nullable=False)
-    status = Column(Enum(CommissionStatus), default=CommissionStatus.PENDING, nullable=False, index=True)
+    status = Column(
+        Enum(CommissionStatus, values_callable=ENUM_VALUE_MAPPER),
+        default=CommissionStatus.PENDING,
+        nullable=False,
+        index=True
+    )
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

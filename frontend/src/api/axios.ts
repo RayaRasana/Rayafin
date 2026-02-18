@@ -12,7 +12,24 @@ const axiosInstance: AxiosInstance = axios.create({
 // Interceptors for request/response handling
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Add any auth tokens or custom headers here
+    const token = localStorage.getItem("token");
+    const rawUser = localStorage.getItem("user");
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (rawUser) {
+      try {
+        const user = JSON.parse(rawUser) as { company_id?: number };
+        if (typeof user.company_id === "number") {
+          config.headers["X-Company-Id"] = String(user.company_id);
+        }
+      } catch {
+        // Ignore malformed local storage payload.
+      }
+    }
+
     return config;
   },
   (error) => {

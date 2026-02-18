@@ -1,4 +1,6 @@
 // Types for the accounting system
+export type Role = "OWNER" | "ACCOUNTANT" | "SALES";
+
 export interface Company {
   id: number;
   name: string;
@@ -26,7 +28,7 @@ export interface User {
   username: string;
   email: string;
   full_name: string;
-  is_admin: boolean;
+  role?: Role;
   company_id?: number;
   created_at: string;
   updated_at: string;
@@ -53,6 +55,7 @@ export interface Invoice {
   due_date: string;
   total_amount: number;
   status: "draft" | "sent" | "paid" | "overdue";
+  is_locked?: boolean;
   items?: InvoiceItem[];
   created_at: string;
   updated_at: string;
@@ -62,8 +65,10 @@ export interface Commission {
   id: number;
   invoice_id: number;
   user_id: number;
+  base_amount?: number;
   commission_percent: number;
   commission_amount: number;
+  status?: "pending" | "approved" | "paid";
   paid_date?: string;
   created_at: string;
   updated_at: string;

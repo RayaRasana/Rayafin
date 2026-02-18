@@ -111,6 +111,23 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
     setErrors({});
   }, [invoice, open, companies]);
 
+  useEffect(() => {
+    const availableCustomerIds = customers
+      .filter((customer) => customer.company_id === formData.company_id)
+      .map((customer) => customer.id);
+
+    if (availableCustomerIds.length === 0) {
+      if (formData.customer_id !== 0) {
+        setFormData((prev) => ({ ...prev, customer_id: 0 }));
+      }
+      return;
+    }
+
+    if (!availableCustomerIds.includes(formData.customer_id)) {
+      setFormData((prev) => ({ ...prev, customer_id: availableCustomerIds[0] }));
+    }
+  }, [customers, formData.company_id, formData.customer_id]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | { name?: string; value: unknown }
@@ -226,7 +243,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
               <InputLabel>{PERSIAN_LABELS.customers}</InputLabel>
               <Select
                 name="customer_id"
-                value={formData.customer_id}
+                value={formData.customer_id || ""}
                 onChange={handleSelectChange}
                 label={PERSIAN_LABELS.customers}
               >

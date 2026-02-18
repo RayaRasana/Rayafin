@@ -42,11 +42,19 @@ import {
 import { Invoice, InvoiceItem } from "../../types";
 import { invoiceAPI } from "../../api/invoices";
 import { commissionAPI } from "../../api/commissions";
+import { useAuth } from "../../context/AuthContext";
+import { RoleGuard } from "../Common/RoleGuard";
 import { InvoiceForm } from "./InvoiceForm";
 import { PERSIAN_LABELS } from "../../utils/persian";
 import { formatDateToPersian } from "../../utils/dateUtils";
+import { hasAnyRole } from "../../utils/rbac";
 
 export const InvoiceList: React.FC = () => {
+  const { user } = useAuth();
+  const role = user?.role;
+  const canEditInvoices = hasAnyRole(role, ["OWNER", "ACCOUNTANT"]);
+  const canDeleteInvoices = hasAnyRole(role, ["OWNER", "ACCOUNTANT"]);
+  const canCreateSnapshot = hasAnyRole(role, ["OWNER", "ACCOUNTANT"]);
   const dispatch = useDispatch<AppDispatch>();
   const invoices = useSelector((state: RootState) => state.invoices.items);
   const companies = useSelector((state: RootState) => state.companies.items);
@@ -198,13 +206,16 @@ export const InvoiceList: React.FC = () => {
             </Select>
           </FormControl>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleAddClick}
-        >
-          {PERSIAN_LABELS.addInvoice}
-        </Button>
+        <RoleGuard allowed={["OWNER", "ACCOUNTANT"]}>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleAddClick}
+            disabled={!canEditInvoices}
+          >
+            {PERSIAN_LABELS.addInvoice}
+          </Button>
+        </RoleGuard>
       </Stack>
 
       <TableContainer component={Paper}>
@@ -272,30 +283,50 @@ export const InvoiceList: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleEditClick(invoice)}
-                      color="primary"
-                    >
-                      <Edit fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDeleteClick(invoice.id)}
-                      color="error"
-                    >
-                      <Delete fontSize="small" />
-                    </IconButton>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() =>
-                        handleCreateCommissionSnapshot(invoice.id)
-                      }
-                      sx={{ ml: 1 }}
-                    >
-                      {PERSIAN_LABELS.createSnapshot}
-                    </Button>
+                    <RoleGuard allowed={["OWNER", "ACCOUNTANT"]}>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEditClick(invoice)}
+                        color="primary"
+                        disabled={!canEditInvoices}
+                      >
+                        <Edit fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDeleteClick(invoice.id)}
+                        color="error"
+                        disabled={!canDeleteInvoices}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() =>
+                          handleCreateCommissionSnapshot(invoice.id)
+                        }
+                        disabled={!canCreateSnapshot}
+                        sx={{ ml: 1 }}
+                      >
+                        {PERSIAN_LABELS.createSnapshot}
+                      </Button>
+                    </RoleGuard>
+                    <RoleGuard allowed={["OWNER"]}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={async () => {
+                          const updated = invoice.is_locked
+                            ? await invoiceAPI.unlock(invoice.id)
+                            : await invoiceAPI.lock(invoice.id);
+                          dispatch(updateInvoice(updated));
+                        }}
+                        sx={{ ml: 1 }}
+                      >
+                        {invoice.is_locked ? "بازکردن قفل" : "قفل"}
+                      </Button>
+                    </RoleGuard>
                   </TableCell>
                 </TableRow>
                 <TableRow>

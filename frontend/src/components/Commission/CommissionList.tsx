@@ -34,11 +34,16 @@ import {
 } from "../../store/commissionSlice";
 import { Commission } from "../../types";
 import { commissionAPI } from "../../api/commissions";
+import { useAuth } from "../../context/AuthContext";
+import { RoleGuard } from "../Common/RoleGuard";
 import { PERSIAN_LABELS } from "../../utils/persian";
 import { validateCommissionPercent } from "../../utils/validation";
 import { formatDateToPersian } from "../../utils/dateUtils";
+import { hasAnyRole } from "../../utils/rbac";
 
 export const CommissionList: React.FC = () => {
+  const { user } = useAuth();
+  const canManageCommissions = hasAnyRole(user?.role, ["OWNER"]);
   const dispatch = useDispatch<AppDispatch>();
   const commissions = useSelector((state: RootState) => state.commissions.items);
   const invoices = useSelector((state: RootState) => state.invoices.items);
@@ -250,6 +255,7 @@ export const CommissionList: React.FC = () => {
           variant="contained"
           startIcon={<Add />}
           onClick={handleAddClick}
+          disabled={!canManageCommissions}
         >
           {PERSIAN_LABELS.add}
         </Button>
@@ -294,20 +300,48 @@ export const CommissionList: React.FC = () => {
                     : "-"}
                 </TableCell>
                 <TableCell align="center">
-                  <IconButton
-                    size="small"
-                    onClick={() => handleEditClick(commission)}
-                    color="primary"
-                  >
-                    <Edit fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDeleteClick(commission.id)}
-                    color="error"
-                  >
-                    <Delete fontSize="small" />
-                  </IconButton>
+                  <RoleGuard allowed={["OWNER"]}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleEditClick(commission)}
+                      color="primary"
+                    >
+                      <Edit fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDeleteClick(commission.id)}
+                      color="error"
+                    >
+                      <Delete fontSize="small" />
+                    </IconButton>
+                    {commission.status !== "approved" && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={async () => {
+                          const updated = await commissionAPI.approve(commission.id);
+                          dispatch(updateCommission(updated));
+                        }}
+                        sx={{ ml: 1 }}
+                      >
+                        تایید
+                      </Button>
+                    )}
+                    {commission.status === "approved" && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={async () => {
+                          const updated = await commissionAPI.markPaid(commission.id);
+                          dispatch(updateCommission(updated));
+                        }}
+                        sx={{ ml: 1 }}
+                      >
+                        پرداخت شد
+                      </Button>
+                    )}
+                  </RoleGuard>
                 </TableCell>
               </TableRow>
             ))}

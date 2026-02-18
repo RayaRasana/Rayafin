@@ -7,8 +7,6 @@ import {
   TextField,
   Button,
   Alert,
-  FormControlLabel,
-  Checkbox,
   MenuItem,
   Select,
   FormControl,
@@ -18,13 +16,21 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { User } from "../../types";
-import { getValidationErrors } from "../../utils/validation";
+import { validateEmail, validateRequired } from "../../utils/validation";
 import { PERSIAN_LABELS } from "../../utils/persian";
+
+export interface UserFormData {
+  username: string;
+  email: string;
+  full_name: string;
+  password: string;
+  company_id?: number;
+}
 
 interface UserFormProps {
   open: boolean;
   user?: User | null;
-  onSave: (user: Omit<User, "id" | "created_at" | "updated_at">) => void;
+  onSave: (user: UserFormData) => void;
   onClose: () => void;
   isLoading?: boolean;
 }
@@ -37,13 +43,11 @@ export const UserForm: React.FC<UserFormProps> = ({
   isLoading = false,
 }) => {
   const companies = useSelector((state: RootState) => state.companies.items);
-  const [formData, setFormData] = useState<
-    Omit<User, "id" | "created_at" | "updated_at">
-  >({
+  const [formData, setFormData] = useState<UserFormData>({
     username: "",
     email: "",
     full_name: "",
-    is_admin: false,
+    password: "",
     company_id: undefined,
   });
 
@@ -55,7 +59,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         username: user.username,
         email: user.email,
         full_name: user.full_name,
-        is_admin: user.is_admin,
+        password: "",
         company_id: user.company_id,
       });
     } else {
@@ -63,7 +67,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         username: "",
         email: "",
         full_name: "",
-        is_admin: false,
+        password: "",
         company_id: companies[0]?.id,
       });
     }
@@ -97,14 +101,34 @@ export const UserForm: React.FC<UserFormProps> = ({
     []
   );
 
+  const validateUserForm = useCallback((): Record<string, string> => {
+    const validationErrors: Record<string, string> = {};
+
+    if (!validateRequired(formData.full_name)) {
+      validationErrors.full_name = "نام کامل الزامی است";
+    }
+
+    if (!validateRequired(formData.email)) {
+      validationErrors.email = "ایمیل الزامی است";
+    } else if (!validateEmail(formData.email)) {
+      validationErrors.email = "ایمیل نامعتبر است";
+    }
+
+    if (!user && !validateRequired(formData.password)) {
+      validationErrors.password = "رمز عبور الزامی است";
+    }
+
+    return validationErrors;
+  }, [formData, user]);
+
   const handleSubmit = useCallback(() => {
-    const validationErrors = getValidationErrors(formData);
+    const validationErrors = validateUserForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
     onSave(formData);
-  }, [formData, onSave]);
+  }, [formData, onSave, validateUserForm]);
 
   return (
     <Dialog
@@ -175,16 +199,17 @@ export const UserForm: React.FC<UserFormProps> = ({
             disabled={isLoading}
             dir="rtl"
           />
-          <FormControlLabel
-            control={
-              <Checkbox
-                name="is_admin"
-                checked={formData.is_admin}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
-            }
-            label={PERSIAN_LABELS.isAdmin}
+          <TextField
+            fullWidth
+            label={PERSIAN_LABELS.password}
+            name="password"
+            type="password"
+            value={formData.password}
+            onChange={handleChange}
+            error={!!errors.password}
+            helperText={errors.password}
+            disabled={isLoading}
+            dir="rtl"
           />
           <FormControl fullWidth>
             <InputLabel>{PERSIAN_LABELS.companies}</InputLabel>

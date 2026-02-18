@@ -31,7 +31,7 @@ import {
 } from "../../store/userSlice";
 import { User } from "../../types";
 import { userAPI } from "../../api/users";
-import { UserForm } from "./UserForm";
+import { UserForm, UserFormData } from "./UserForm";
 import { PERSIAN_LABELS } from "../../utils/persian";
 
 export const UserList: React.FC = () => {
@@ -82,18 +82,25 @@ export const UserList: React.FC = () => {
   }, []);
 
   const handleFormSave = useCallback(
-    async (
-      data: Omit<User, "id" | "created_at" | "updated_at">
-    ) => {
+    async (data: UserFormData) => {
       try {
         setFormLoading(true);
         if (selectedUser) {
-          const updated = await userAPI.update(selectedUser.id, data);
+          const updated = await userAPI.update(selectedUser.id, {
+            email: data.email,
+            full_name: data.full_name,
+            password: data.password || undefined,
+          });
           dispatch(updateUser(updated));
         } else {
-          const created = await userAPI.create(data);
+          const created = await userAPI.create({
+            email: data.email,
+            full_name: data.full_name,
+            password: data.password,
+          });
           dispatch(addUser(created));
         }
+        await loadUsers();
         handleFormClose();
       } catch (error) {
         console.error("Failed to save user:", error);
@@ -101,7 +108,7 @@ export const UserList: React.FC = () => {
         setFormLoading(false);
       }
     },
-    [selectedUser, dispatch, handleFormClose]
+    [selectedUser, dispatch, handleFormClose, loadUsers]
   );
 
   const handleConfirmDelete = useCallback(async () => {
@@ -244,7 +251,7 @@ export const UserList: React.FC = () => {
                     color: "#2e5090",
                   }}
                 >
-                  {PERSIAN_LABELS.isAdmin}
+                  نقش
                 </TableCell>
                 <TableCell
                   align="right"
@@ -293,11 +300,7 @@ export const UserList: React.FC = () => {
                     {user.email}
                   </TableCell>
                   <TableCell align="right" sx={{ textAlign: "right" }}>
-                    {user.is_admin ? (
-                      <Chip label="مدیر" color="primary" size="small" />
-                    ) : (
-                      <Chip label="کاربر" size="small" />
-                    )}
+                    <Chip label={user.role || "-"} size="small" />
                   </TableCell>
                   <TableCell align="right" sx={{ textAlign: "right" }}>
                     {getCompanyName(user.company_id)}
