@@ -47,14 +47,15 @@ import { RoleGuard } from "../Common/RoleGuard";
 import { InvoiceForm } from "./InvoiceForm";
 import { PERSIAN_LABELS } from "../../utils/persian";
 import { formatDateToPersian } from "../../utils/dateUtils";
-import { hasAnyRole } from "../../utils/rbac";
+import { hasPermission } from "../../utils/rbac";
 
 export const InvoiceList: React.FC = () => {
   const { user } = useAuth();
-  const role = user?.role;
-  const canEditInvoices = hasAnyRole(role, ["OWNER", "ACCOUNTANT"]);
-  const canDeleteInvoices = hasAnyRole(role, ["OWNER", "ACCOUNTANT"]);
-  const canCreateSnapshot = hasAnyRole(role, ["OWNER", "ACCOUNTANT"]);
+  const canCreateInvoices = hasPermission(user?.role, "invoice:create");
+  const canUpdateInvoices = hasPermission(user?.role, "invoice:update");
+  const canDeleteInvoices = hasPermission(user?.role, "invoice:delete");
+  const canCreateSnapshot = hasPermission(user?.role, "invoice:update");
+  const canLockInvoices = hasPermission(user?.role, "invoice:lock");
   const dispatch = useDispatch<AppDispatch>();
   const invoices = useSelector((state: RootState) => state.invoices.items);
   const companies = useSelector((state: RootState) => state.companies.items);
@@ -67,7 +68,7 @@ export const InvoiceList: React.FC = () => {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [selectedCompanyId, setSelectedCompanyId] = useState<number>(
-    companies[0]?.id || 0
+    user?.company_id || companies[0]?.id || 0
   );
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
@@ -85,9 +86,13 @@ export const InvoiceList: React.FC = () => {
 
   useEffect(() => {
     if (companies.length > 0 && selectedCompanyId === 0) {
-      setSelectedCompanyId(companies[0].id);
+      const userCompanyId =
+        typeof user?.company_id === "number"
+          ? companies.find((company) => company.id === user.company_id)?.id
+          : undefined;
+      setSelectedCompanyId(userCompanyId ?? companies[0].id);
     }
-  }, [companies, selectedCompanyId]);
+  }, [companies, selectedCompanyId, user?.company_id]);
 
   useEffect(() => {
     if (selectedCompanyId > 0) {
@@ -206,12 +211,12 @@ export const InvoiceList: React.FC = () => {
             </Select>
           </FormControl>
         </Box>
-        <RoleGuard allowed={["OWNER", "ACCOUNTANT"]}>
+        <RoleGuard permission="invoice:create">
           <Button
             variant="contained"
             startIcon={<Add />}
             onClick={handleAddClick}
-            disabled={!canEditInvoices}
+            disabled={!canCreateInvoices}
           >
             {PERSIAN_LABELS.addInvoice}
           </Button>
@@ -283,36 +288,40 @@ export const InvoiceList: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell align="center">
-                    <RoleGuard allowed={["OWNER", "ACCOUNTANT"]}>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEditClick(invoice)}
-                        color="primary"
-                        disabled={!canEditInvoices}
-                      >
-                        <Edit fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleDeleteClick(invoice.id)}
-                        color="error"
-                        disabled={!canDeleteInvoices}
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() =>
-                          handleCreateCommissionSnapshot(invoice.id)
-                        }
-                        disabled={!canCreateSnapshot}
-                        sx={{ ml: 1 }}
-                      >
-                        {PERSIAN_LABELS.createSnapshot}
-                      </Button>
+                    <RoleGuard permission="invoice:update">
+                      {(canLockInvoices || !invoice.is_locked) && canUpdateInvoices && (
+                        <IconButton
+                          size="small"
+                          onClick={() => handleEditClick(invoice)}
+                          color="primary"
+                        >
+                          <Edit fontSize="small" />
+                        </IconButton>
+                      )}
+                      {(canLockInvoices || invoice.status.toLowerCase() !== "paid") &&
+                        canDeleteInvoices && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteClick(invoice.id)}
+                            color="error"
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        )}
+                      {canCreateSnapshot && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() =>
+                            handleCreateCommissionSnapshot(invoice.id)
+                          }
+                          sx={{ ml: 1 }}
+                        >
+                          {PERSIAN_LABELS.createSnapshot}
+                        </Button>
+                      )}
                     </RoleGuard>
-                    <RoleGuard allowed={["OWNER"]}>
+                    <RoleGuard permission="invoice:lock">
                       <Button
                         size="small"
                         variant="outlined"

@@ -1,6 +1,6 @@
 import React from "react";
 import { ThemeProvider, CssBaseline } from "@mui/material";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 import { theme } from "./theme/theme";
@@ -13,6 +13,18 @@ import { CustomerList } from "./components/Customer/CustomerList";
 import { UserList } from "./components/User/UserList";
 import { InvoiceList } from "./components/Invoice/InvoiceList";
 import { CommissionList } from "./components/Commission/CommissionList";
+import { useAuth } from "./context/AuthContext";
+import { hasPermission } from "./utils/rbac";
+
+const HomeRoute: React.FC = () => {
+  const { user } = useAuth();
+
+  if (!hasPermission(user?.role, "company:read")) {
+    return <Navigate to="/customers" replace />;
+  }
+
+  return <CompanyList />;
+};
 
 const App: React.FC = () => {
   return (
@@ -31,7 +43,7 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <Layout>
-                      <CompanyList />
+                      <HomeRoute />
                     </Layout>
                   </ProtectedRoute>
                 }

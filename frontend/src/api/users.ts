@@ -1,6 +1,9 @@
 import axiosInstance from "./axios";
 import { User } from "../types";
 
+const companyHeader = (companyId?: number) =>
+  companyId ? { headers: { "X-Company-Id": String(companyId) } } : undefined;
+
 interface BackendUser {
   id: number;
   email: string;
@@ -36,28 +39,42 @@ const mapBackendUser = (user: BackendUser): User => ({
 });
 
 export const userAPI = {
-  getAll: async () => {
-    const response = await axiosInstance.get<BackendUser[]>("/users");
+  getAll: async (companyId?: number) => {
+    const response = await axiosInstance.get<BackendUser[]>(
+      "/users",
+      companyHeader(companyId)
+    );
     return response.data.map(mapBackendUser);
   },
 
-  getById: async (id: number) => {
-    const response = await axiosInstance.get<BackendUser>(`/users/${id}`);
+  getById: async (id: number, companyId?: number) => {
+    const response = await axiosInstance.get<BackendUser>(
+      `/users/${id}`,
+      companyHeader(companyId)
+    );
     return mapBackendUser(response.data);
   },
 
-  create: async (data: UserCreatePayload) => {
-    const response = await axiosInstance.post<BackendUser>("/users", data);
+  create: async (data: UserCreatePayload, companyId?: number) => {
+    const response = await axiosInstance.post<BackendUser>(
+      "/users",
+      data,
+      companyHeader(companyId)
+    );
     return mapBackendUser(response.data);
   },
 
-  update: async (id: number, data: UserUpdatePayload) => {
-    const response = await axiosInstance.put<BackendUser>(`/users/${id}`, data);
+  update: async (id: number, data: UserUpdatePayload, companyId?: number) => {
+    const response = await axiosInstance.put<BackendUser>(
+      `/users/${id}`,
+      data,
+      companyHeader(companyId)
+    );
     return mapBackendUser(response.data);
   },
 
-  delete: async (id: number) => {
-    await axiosInstance.delete(`/users/${id}`);
+  delete: async (id: number, companyId?: number) => {
+    await axiosInstance.delete(`/users/${id}`, companyHeader(companyId));
   },
 
   assignToCompany: async (userId: number, companyId: number) => {

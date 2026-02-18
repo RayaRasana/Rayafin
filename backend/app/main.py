@@ -478,12 +478,22 @@ async def get_current_user(user_id: int = Query(...), token: str = Query(...), d
 async def create_company(
     company: CompanyCreate,
     db: Session = Depends(get_db),
-    _: AccessContext = Depends(require_owner()),
+    context: AccessContext = Depends(require_owner()),
 ):
     """Create a new company."""
     
     new_company = Company(name=company.name)
     db.add(new_company)
+    db.flush()
+
+    owner_membership = CompanyUser(
+        company_id=new_company.id,
+        user_id=context.user.id,
+        role=UserRole.OWNER,
+        commission_percent=Decimal("0.00"),
+    )
+    db.add(owner_membership)
+
     db.commit()
     db.refresh(new_company)
     return new_company
@@ -493,11 +503,18 @@ async def list_companies(
     skip: int = Query(0),
     limit: int = Query(10),
     db: Session = Depends(get_db),
-    _: AccessContext = Depends(get_access_context),
+    context: AccessContext = Depends(get_access_context),
 ):
     """List all companies."""
-    
-    companies = db.query(Company).offset(skip).limit(limit).all()
+
+    companies = (
+        db.query(Company)
+        .join(CompanyUser, CompanyUser.company_id == Company.id)
+        .filter(CompanyUser.user_id == context.user.id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
     return companies
 
 @app.get("/api/companies/{company_id}", response_model=CompanyResponse)
@@ -536,6 +553,24 @@ async def update_company(
     db.commit()
     db.refresh(company)
     return company
+
+
+@app.delete("/api/companies/{company_id}", status_code=204)
+async def delete_company(
+    company_id: int,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_owner()),
+):
+    if company_id != context.company_id:
+        raise HTTPException(status_code=403, detail="Cross-company access denied")
+
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    db.delete(company)
+    db.commit()
+    return None
 
 # ============================================================================
 # Customer Endpoints

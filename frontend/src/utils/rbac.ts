@@ -1,6 +1,10 @@
 import { Role } from "../types";
 
 export type PermissionKey =
+  | "company:create"
+  | "company:update"
+  | "company:delete"
+  | "company:read"
   | "invoice:create"
   | "invoice:update"
   | "invoice:delete"
@@ -17,6 +21,10 @@ export type PermissionKey =
   | "audit:read";
 
 export const PERMISSION_MATRIX: Record<PermissionKey, Role[]> = {
+  "company:create": ["OWNER"],
+  "company:update": ["OWNER"],
+  "company:delete": ["OWNER"],
+  "company:read": ["OWNER", "ACCOUNTANT"],
   "invoice:create": ["OWNER", "ACCOUNTANT"],
   "invoice:update": ["OWNER", "ACCOUNTANT"],
   "invoice:delete": ["OWNER", "ACCOUNTANT"],
@@ -41,4 +49,14 @@ export const hasAnyRole = (
     return false;
   }
   return allowedRoles.includes(userRole);
+};
+
+export const hasPermission = (
+  userRole: Role | undefined,
+  permission: PermissionKey
+): boolean => {
+  if (!userRole) {
+    return false;
+  }
+  return PERMISSION_MATRIX[permission].includes(userRole);
 };

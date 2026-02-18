@@ -28,7 +28,7 @@ import { RootState } from "../../store/store";
 import { Invoice, InvoiceItem } from "../../types";
 import { validateInvoiceTotal } from "../../utils/validation";
 import { PERSIAN_LABELS, INVOICE_STATUS_OPTIONS } from "../../utils/persian";
-import { today } from "../../utils/dateUtils";
+import { normalizeToHtmlDate, today } from "../../utils/dateUtils";
 
 interface InvoiceFormProps {
   open: boolean;
@@ -82,8 +82,8 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
         company_id: invoice.company_id,
         customer_id: invoice.customer_id,
         invoice_number: invoice.invoice_number,
-        invoice_date: invoice.invoice_date,
-        due_date: invoice.due_date,
+        invoice_date: normalizeToHtmlDate(invoice.invoice_date),
+        due_date: normalizeToHtmlDate(invoice.due_date),
         total_amount: invoice.total_amount,
         status: invoice.status,
       });

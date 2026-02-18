@@ -39,11 +39,11 @@ import { RoleGuard } from "../Common/RoleGuard";
 import { PERSIAN_LABELS } from "../../utils/persian";
 import { validateCommissionPercent } from "../../utils/validation";
 import { formatDateToPersian } from "../../utils/dateUtils";
-import { hasAnyRole } from "../../utils/rbac";
+import { hasPermission } from "../../utils/rbac";
 
 export const CommissionList: React.FC = () => {
   const { user } = useAuth();
-  const canManageCommissions = hasAnyRole(user?.role, ["OWNER"]);
+  const canManageCommissions = hasPermission(user?.role, "commission:approve");
   const dispatch = useDispatch<AppDispatch>();
   const commissions = useSelector((state: RootState) => state.commissions.items);
   const invoices = useSelector((state: RootState) => state.invoices.items);
@@ -300,7 +300,7 @@ export const CommissionList: React.FC = () => {
                     : "-"}
                 </TableCell>
                 <TableCell align="center">
-                  <RoleGuard allowed={["OWNER"]}>
+                  <RoleGuard permission="commission:approve">
                     <IconButton
                       size="small"
                       onClick={() => handleEditClick(commission)}

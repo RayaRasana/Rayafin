@@ -18,6 +18,11 @@ import {
   Chip,
   Card,
   Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Stack,
 } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
@@ -33,8 +38,10 @@ import { User } from "../../types";
 import { userAPI } from "../../api/users";
 import { UserForm, UserFormData } from "./UserForm";
 import { PERSIAN_LABELS } from "../../utils/persian";
+import { useAuth } from "../../context/AuthContext";
 
 export const UserList: React.FC = () => {
+  const { user: authUser } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
   const users = useSelector((state: RootState) => state.users.items);
   const companies = useSelector((state: RootState) => state.companies.items);
@@ -44,11 +51,14 @@ export const UserList: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(
+    authUser?.company_id || companies[0]?.id || 0
+  );
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = useCallback(async (companyId: number) => {
     try {
       dispatch(setLoading(true));
-      const data = await userAPI.getAll();
+      const data = await userAPI.getAll(companyId);
       dispatch(setUsers(data));
     } catch (error) {
       console.error("Failed to load users:", error);
@@ -58,8 +68,20 @@ export const UserList: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+    if (companies.length > 0 && selectedCompanyId === 0) {
+      const preferredCompanyId =
+        typeof authUser?.company_id === "number"
+          ? companies.find((company) => company.id === authUser.company_id)?.id
+          : undefined;
+      setSelectedCompanyId(preferredCompanyId ?? companies[0].id);
+    }
+  }, [companies, selectedCompanyId, authUser?.company_id]);
+
+  useEffect(() => {
+    if (selectedCompanyId > 0) {
+      loadUsers(selectedCompanyId);
+    }
+  }, [selectedCompanyId, loadUsers]);
 
   const handleAddClick = useCallback(() => {
     setSelectedUser(null);
@@ -90,17 +112,17 @@ export const UserList: React.FC = () => {
             email: data.email,
             full_name: data.full_name,
             password: data.password || undefined,
-          });
+          }, selectedCompanyId);
           dispatch(updateUser(updated));
         } else {
           const created = await userAPI.create({
             email: data.email,
             full_name: data.full_name,
             password: data.password,
-          });
+          }, data.company_id || selectedCompanyId);
           dispatch(addUser(created));
         }
-        await loadUsers();
+        await loadUsers(selectedCompanyId);
         handleFormClose();
       } catch (error) {
         console.error("Failed to save user:", error);
@@ -108,20 +130,20 @@ export const UserList: React.FC = () => {
         setFormLoading(false);
       }
     },
-    [selectedUser, dispatch, handleFormClose, loadUsers]
+    [selectedUser, dispatch, handleFormClose, loadUsers, selectedCompanyId]
   );
 
   const handleConfirmDelete = useCallback(async () => {
     if (deleteId === null) return;
     try {
-      await userAPI.delete(deleteId);
+      await userAPI.delete(deleteId, selectedCompanyId);
       dispatch(deleteUser(deleteId));
       setDeleteDialogOpen(false);
       setDeleteId(null);
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
-  }, [deleteId, dispatch]);
+  }, [deleteId, dispatch, selectedCompanyId]);
 
   const getCompanyName = (companyId?: number) => {
     if (!companyId) return "-";
@@ -162,25 +184,43 @@ export const UserList: React.FC = () => {
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {PERSIAN_LABELS.users}
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={handleAddClick}
-            sx={{
-              backgroundColor: "white",
-              color: "#2e5090",
-              fontWeight: 600,
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+            <Box sx={{ minWidth: 220 }}>
+              <FormControl fullWidth size="small" sx={{ backgroundColor: "white", borderRadius: "8px" }}>
+                <InputLabel>{PERSIAN_LABELS.companies}</InputLabel>
+                <Select
+                  value={selectedCompanyId}
+                  label={PERSIAN_LABELS.companies}
+                  onChange={(e) => setSelectedCompanyId(e.target.value as number)}
+                >
+                  {companies.map((company) => (
+                    <MenuItem key={company.id} value={company.id}>
+                      {company.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={handleAddClick}
+              sx={{
+                backgroundColor: "white",
+                color: "#2e5090",
+                fontWeight: 600,
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
 
-              "&:hover": {
-                backgroundColor: "#f0f9ff",
-                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
-              },
-            }}
-          >
-            {PERSIAN_LABELS.addUser}
-          </Button>
+                "&:hover": {
+                  backgroundColor: "#f0f9ff",
+                  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
+                },
+              }}
+            >
+              {PERSIAN_LABELS.addUser}
+            </Button>
+          </Stack>
         </Box>
       </Card>
 
@@ -353,6 +393,7 @@ export const UserList: React.FC = () => {
         onSave={handleFormSave}
         onClose={handleFormClose}
         isLoading={formLoading}
+        defaultCompanyId={selectedCompanyId || undefined}
       />
 
       {/* Delete Confirmation Dialog */}

@@ -14,10 +14,12 @@ import { ExitToApp, Person } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { PERSIAN_LABELS } from "../../utils/persian";
+import { hasPermission } from "../../utils/rbac";
 
 export const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const canReadCompanies = hasPermission(user?.role, "company:read");
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
@@ -79,24 +81,26 @@ export const Navigation: React.FC = () => {
 
         {/* Navigation Links */}
         <Box sx={{ display: "flex", gap: 1 }}>
-          <Button
-            color="inherit"
-            onClick={() => handleNavigate("/")}
-            sx={{
-              textTransform: "none",
-              fontSize: "0.95rem",
-              fontWeight: 500,
-              padding: "8px 16px",
-              borderRadius: "8px",
-              transition: "all 0.3s ease",
+          {canReadCompanies && (
+            <Button
+              color="inherit"
+              onClick={() => handleNavigate("/")}
+              sx={{
+                textTransform: "none",
+                fontSize: "0.95rem",
+                fontWeight: 500,
+                padding: "8px 16px",
+                borderRadius: "8px",
+                transition: "all 0.3s ease",
 
-              "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.15)",
-              },
-            }}
-          >
-            {PERSIAN_LABELS.companies}
-          </Button>
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.15)",
+                },
+              }}
+            >
+              {PERSIAN_LABELS.companies}
+            </Button>
+          )}
           <Button
             color="inherit"
             onClick={() => handleNavigate("/customers")}

@@ -33,6 +33,7 @@ interface UserFormProps {
   onSave: (user: UserFormData) => void;
   onClose: () => void;
   isLoading?: boolean;
+  defaultCompanyId?: number;
 }
 
 export const UserForm: React.FC<UserFormProps> = ({
@@ -41,6 +42,7 @@ export const UserForm: React.FC<UserFormProps> = ({
   onSave,
   onClose,
   isLoading = false,
+  defaultCompanyId,
 }) => {
   const companies = useSelector((state: RootState) => state.companies.items);
   const [formData, setFormData] = useState<UserFormData>({
@@ -68,11 +70,11 @@ export const UserForm: React.FC<UserFormProps> = ({
         email: "",
         full_name: "",
         password: "",
-        company_id: companies[0]?.id,
+        company_id: defaultCompanyId ?? companies[0]?.id,
       });
     }
     setErrors({});
-  }, [user, open, companies]);
+  }, [user, open, companies, defaultCompanyId]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

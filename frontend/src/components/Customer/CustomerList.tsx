@@ -37,8 +37,14 @@ import { Customer } from "../../types";
 import { customerAPI } from "../../api/customers";
 import { CustomerForm } from "./CustomerForm";
 import { PERSIAN_LABELS } from "../../utils/persian";
+import { useAuth } from "../../context/AuthContext";
+import { hasPermission } from "../../utils/rbac";
 
 export const CustomerList: React.FC = () => {
+  const { user } = useAuth();
+  const canCreateCustomer = hasPermission(user?.role, "customer:create");
+  const canUpdateCustomer = hasPermission(user?.role, "customer:update");
+  const canDeleteCustomer = hasPermission(user?.role, "customer:delete");
   const dispatch = useDispatch<AppDispatch>();
   const customers = useSelector((state: RootState) => state.customers.items);
   const companies = useSelector((state: RootState) => state.companies.items);
@@ -51,7 +57,7 @@ export const CustomerList: React.FC = () => {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | "all">(
-    companies[0]?.id || "all"
+    user?.company_id || companies[0]?.id || "all"
   );
 
   const loadCustomers = useCallback(async (companyId: number) => {
@@ -68,9 +74,13 @@ export const CustomerList: React.FC = () => {
 
   useEffect(() => {
     if (companies.length > 0 && selectedCompanyId === "all") {
-      setSelectedCompanyId(companies[0].id);
+      const userCompanyId =
+        typeof user?.company_id === "number"
+          ? companies.find((company) => company.id === user.company_id)?.id
+          : undefined;
+      setSelectedCompanyId(userCompanyId ?? companies[0].id);
     }
-  }, [companies, selectedCompanyId]);
+  }, [companies, selectedCompanyId, user?.company_id]);
 
   useEffect(() => {
     if (selectedCompanyId !== "all") {
@@ -79,19 +89,28 @@ export const CustomerList: React.FC = () => {
   }, [selectedCompanyId, loadCustomers]);
 
   const handleAddClick = useCallback(() => {
+    if (!canCreateCustomer) {
+      return;
+    }
     setSelectedCustomer(null);
     setFormOpen(true);
-  }, []);
+  }, [canCreateCustomer]);
 
   const handleEditClick = useCallback((customer: Customer) => {
+    if (!canUpdateCustomer) {
+      return;
+    }
     setSelectedCustomer(customer);
     setFormOpen(true);
-  }, []);
+  }, [canUpdateCustomer]);
 
   const handleDeleteClick = useCallback((id: number) => {
+    if (!canDeleteCustomer) {
+      return;
+    }
     setDeleteId(id);
     setDeleteDialogOpen(true);
-  }, []);
+  }, [canDeleteCustomer]);
 
   const handleFormClose = useCallback(() => {
     setFormOpen(false);
@@ -105,10 +124,14 @@ export const CustomerList: React.FC = () => {
       try {
         setFormLoading(true);
         if (selectedCustomer) {
-          const updated = await customerAPI.update(selectedCustomer.id, data);
+          const updated = await customerAPI.update(
+            selectedCustomer.id,
+            data,
+            data.company_id
+          );
           dispatch(updateCustomer(updated));
         } else {
-          const created = await customerAPI.create(data);
+          const created = await customerAPI.create(data, data.company_id);
           dispatch(addCustomer(created));
         }
         handleFormClose();
@@ -124,14 +147,17 @@ export const CustomerList: React.FC = () => {
   const handleConfirmDelete = useCallback(async () => {
     if (deleteId === null) return;
     try {
-      await customerAPI.delete(deleteId);
+      await customerAPI.delete(
+        deleteId,
+        selectedCompanyId === "all" ? undefined : selectedCompanyId
+      );
       dispatch(deleteCustomer(deleteId));
       setDeleteDialogOpen(false);
       setDeleteId(null);
     } catch (error) {
       console.error("Failed to delete customer:", error);
     }
-  }, [deleteId, dispatch]);
+  }, [deleteId, dispatch, selectedCompanyId]);
 
   const handleCloseDeleteDialog = useCallback(() => {
     setDeleteDialogOpen(false);
@@ -186,25 +212,27 @@ export const CustomerList: React.FC = () => {
                 </Select>
               </FormControl>
             </Box>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={handleAddClick}
-              sx={{
-                backgroundColor: "white",
-                color: "#2e5090",
-                fontWeight: 600,
-                borderRadius: "12px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            {canCreateCustomer && (
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={handleAddClick}
+                sx={{
+                  backgroundColor: "white",
+                  color: "#2e5090",
+                  fontWeight: 600,
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
 
-                "&:hover": {
-                  backgroundColor: "#f0f9ff",
-                  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
-                },
-              }}
-            >
-              {PERSIAN_LABELS.addCustomer}
-            </Button>
+                  "&:hover": {
+                    backgroundColor: "#f0f9ff",
+                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
+                  },
+                }}
+              >
+                {PERSIAN_LABELS.addCustomer}
+              </Button>
+            )}
           </Stack>
         </Stack>
       </Card>
@@ -278,17 +306,19 @@ export const CustomerList: React.FC = () => {
                 >
                   {PERSIAN_LABELS.companies}
                 </TableCell>
-                <TableCell
-                  align="center"
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: "0.95rem",
-                    color: "#2e5090",
-                    width: "140px",
-                  }}
-                >
-                  {PERSIAN_LABELS.edit}
-                </TableCell>
+                {(canUpdateCustomer || canDeleteCustomer) && (
+                  <TableCell
+                    align="center"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.95rem",
+                      color: "#2e5090",
+                      width: "140px",
+                    }}
+                  >
+                    {PERSIAN_LABELS.edit}
+                  </TableCell>
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -317,40 +347,46 @@ export const CustomerList: React.FC = () => {
                   <TableCell align="right" sx={{ textAlign: "right" }}>
                     {getCompanyName(customer.company_id)}
                   </TableCell>
-                  <TableCell align="center">
-                    <Box sx={{ display: "flex", justifyContent: "center", gap: 0.5 }}>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEditClick(customer)}
-                        color="primary"
-                        sx={{
-                          borderRadius: "8px",
-                          transition: "all 0.2s ease",
+                  {(canUpdateCustomer || canDeleteCustomer) && (
+                    <TableCell align="center">
+                      <Box sx={{ display: "flex", justifyContent: "center", gap: 0.5 }}>
+                        {canUpdateCustomer && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEditClick(customer)}
+                            color="primary"
+                            sx={{
+                              borderRadius: "8px",
+                              transition: "all 0.2s ease",
 
-                          "&:hover": {
-                            backgroundColor: "#e0e7ff",
-                          },
-                        }}
-                      >
-                        <Edit fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleDeleteClick(customer.id)}
-                        color="error"
-                        sx={{
-                          borderRadius: "8px",
-                          transition: "all 0.2s ease",
+                              "&:hover": {
+                                backgroundColor: "#e0e7ff",
+                              },
+                            }}
+                          >
+                            <Edit fontSize="small" />
+                          </IconButton>
+                        )}
+                        {canDeleteCustomer && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteClick(customer.id)}
+                            color="error"
+                            sx={{
+                              borderRadius: "8px",
+                              transition: "all 0.2s ease",
 
-                          "&:hover": {
-                            backgroundColor: "#fee2e2",
-                          },
-                        }}
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </TableCell>
+                              "&:hover": {
+                                backgroundColor: "#fee2e2",
+                              },
+                            }}
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Box>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -359,43 +395,50 @@ export const CustomerList: React.FC = () => {
       )}
 
       {/* Customer Form Dialog */}
-      <CustomerForm
-        open={formOpen}
-        customer={selectedCustomer}
-        onSave={handleFormSave}
-        onClose={handleFormClose}
-        isLoading={formLoading}
-      />
+      {(canCreateCustomer || canUpdateCustomer) && (
+        <CustomerForm
+          open={formOpen}
+          customer={selectedCustomer}
+          onSave={handleFormSave}
+          onClose={handleFormClose}
+          isLoading={formLoading}
+          defaultCompanyId={
+            selectedCompanyId === "all" ? undefined : selectedCompanyId
+          }
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleCloseDeleteDialog}
-        PaperProps={{
-          sx: {
-            borderRadius: "16px",
-          },
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 700, color: "#2e5090" }}>
-          {PERSIAN_LABELS.delete}
-        </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Typography>{PERSIAN_LABELS.confirmDelete}</Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button onClick={handleCloseDeleteDialog}>
-            {PERSIAN_LABELS.cancel}
-          </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            color="error"
-            variant="contained"
-          >
+      {canDeleteCustomer && (
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={handleCloseDeleteDialog}
+          PaperProps={{
+            sx: {
+              borderRadius: "16px",
+            },
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 700, color: "#2e5090" }}>
             {PERSIAN_LABELS.delete}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </DialogTitle>
+          <DialogContent sx={{ pt: 2 }}>
+            <Typography>{PERSIAN_LABELS.confirmDelete}</Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button onClick={handleCloseDeleteDialog}>
+              {PERSIAN_LABELS.cancel}
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              color="error"
+              variant="contained"
+            >
+              {PERSIAN_LABELS.delete}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Box>
   );
 };

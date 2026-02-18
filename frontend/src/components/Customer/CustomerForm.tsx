@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -25,6 +25,7 @@ interface CustomerFormProps {
   onSave: (customer: Omit<Customer, "id" | "created_at" | "updated_at">) => void;
   onClose: () => void;
   isLoading?: boolean;
+  defaultCompanyId?: number;
 }
 
 export const CustomerForm: React.FC<CustomerFormProps> = ({
@@ -33,8 +34,10 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
   onSave,
   onClose,
   isLoading = false,
+  defaultCompanyId,
 }) => {
   const companies = useSelector((state: RootState) => state.companies.items);
+  const availableCompanies = useMemo(() => companies, [companies]);
   const [formData, setFormData] = useState<
     Omit<Customer, "id" | "created_at" | "updated_at">
   >({
@@ -47,7 +50,19 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const firstCompanyId = useMemo(
+    () =>
+      defaultCompanyId ??
+      availableCompanies[0]?.id ??
+      0,
+    [defaultCompanyId, availableCompanies]
+  );
+
   useEffect(() => {
+    if (!open) {
+      return;
+    }
+
     if (customer) {
       setFormData({
         company_id: customer.company_id,
@@ -58,7 +73,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
       });
     } else {
       setFormData({
-        company_id: companies[0]?.id || 0,
+        company_id: firstCompanyId,
         name: "",
         email: "",
         phone: "",
@@ -66,7 +81,19 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
       });
     }
     setErrors({});
-  }, [customer, open, companies]);
+  }, [customer, open, firstCompanyId]);
+
+  useEffect(() => {
+    if (
+      formData.company_id > 0 &&
+      !availableCompanies.some((company) => company.id === formData.company_id)
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        company_id: availableCompanies[0]?.id || 0,
+      }));
+    }
+  }, [availableCompanies, formData.company_id]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,7 +168,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
               label={PERSIAN_LABELS.companies}
               disabled={isLoading}
             >
-              {companies.map((company) => (
+              {availableCompanies.map((company) => (
                 <MenuItem key={company.id} value={company.id}>
                   {company.name}
                 </MenuItem>

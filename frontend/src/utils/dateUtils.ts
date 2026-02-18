@@ -1,5 +1,31 @@
 // Date utility functions for Persian format YYYY/MM/DD
 
+const pad = (value: number): string => String(value).padStart(2, "0");
+
+const toHtmlDate = (date: Date): string => {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}`;
+};
+
+export const normalizeToHtmlDate = (value: string | Date): string => {
+  if (value instanceof Date) {
+    return toHtmlDate(value);
+  }
+
+  const normalized = value.trim().replace(/\//g, "-");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    return normalized;
+  }
+
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return toHtmlDate(parsed);
+  }
+
+  return toHtmlDate(new Date());
+};
+
 export const formatDateToPersian = (date: string | Date): string => {
   const d = typeof date === "string" ? new Date(date) : date;
   const year = d.getFullYear();
@@ -32,11 +58,11 @@ export const formatCurrencyPersian = (amount: number): string => {
 };
 
 export const today = (): string => {
-  return formatDateToPersian(new Date());
+  return toHtmlDate(new Date());
 };
 
 export const addDays = (date: string, days: number): string => {
-  const d = new Date(date);
+  const d = new Date(normalizeToHtmlDate(date));
   d.setDate(d.getDate() + days);
-  return formatDateToPersian(d);
+  return toHtmlDate(d);
 };

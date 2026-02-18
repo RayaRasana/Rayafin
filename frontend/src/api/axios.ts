@@ -22,7 +22,11 @@ axiosInstance.interceptors.request.use(
     if (rawUser) {
       try {
         const user = JSON.parse(rawUser) as { company_id?: number };
-        if (typeof user.company_id === "number") {
+        const existingCompanyHeader = config.headers["X-Company-Id"];
+        if (
+          typeof user.company_id === "number" &&
+          (existingCompanyHeader === undefined || existingCompanyHeader === null)
+        ) {
           config.headers["X-Company-Id"] = String(user.company_id);
         }
       } catch {

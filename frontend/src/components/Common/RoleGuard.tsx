@@ -1,17 +1,29 @@
 import React from "react";
 import { useAuth } from "../../context/AuthContext";
 import { Role } from "../../types";
-import { hasAnyRole } from "../../utils/rbac";
+import { hasAnyRole, hasPermission, PermissionKey } from "../../utils/rbac";
 
 interface RoleGuardProps {
-  allowed: Role[];
+  allowed?: Role[];
+  permission?: PermissionKey;
   children: React.ReactNode;
 }
 
-export const RoleGuard: React.FC<RoleGuardProps> = ({ allowed, children }) => {
+export const RoleGuard: React.FC<RoleGuardProps> = ({
+  allowed,
+  permission,
+  children,
+}) => {
   const { user } = useAuth();
 
-  if (!hasAnyRole(user?.role, allowed)) {
+  const isAuthorized =
+    permission !== undefined
+      ? hasPermission(user?.role, permission)
+      : allowed !== undefined
+      ? hasAnyRole(user?.role, allowed)
+      : false;
+
+  if (!isAuthorized) {
     return null;
   }
 
