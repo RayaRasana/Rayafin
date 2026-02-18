@@ -1,0 +1,11 @@
+sqlalchemy==2.0.46
+psycopg==3.3.2
+python-dotenv==1.0.0
+
+# Web Framework & Testing
+fastapi==0.104.1
+uvicorn==0.24.0
+requests==2.31.0
+
+# Data Validation
+pydantic==2.5.0

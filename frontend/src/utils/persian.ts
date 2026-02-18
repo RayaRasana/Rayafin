@@ -1,0 +1,128 @@
+// Persian UI text and constants
+
+export const PERSIAN_LABELS = {
+  // General
+  save: "ذخیره",
+  cancel: "لغو",
+  delete: "حذف",
+  edit: "ویرایش",
+  add: "افزودن",
+  close: "بستن",
+  submit: "ارسال",
+  back: "بازگشت",
+  search: "جستجو",
+  loading: "در حال بارگذاری...",
+  noData: "داده‌ای یافت نشد.",
+  error: "خطا",
+  success: "موفق",
+  warning: "هشدار",
+  info: "اطلاعات",
+  
+  // Company
+  companies: "شرکت‌ها",
+  company: "شرکت",
+  companyName: "نام شرکت",
+  companyAddress: "آدرس شرکت",
+  companyPhone: "تلفن شرکت",
+  companyEmail: "ایمیل شرکت",
+  taxId: "شناسه مالیاتی",
+  addCompany: "افزودن شرکت",
+  editCompany: "ویرایش شرکت",
+  deleteCompany: "حذف شرکت",
+  companyDeleted: "شرکت با موفقیت حذف شد",
+  companySaved: "شرکت با موفقیت ذخیره شد",
+
+  // Customer
+  customers: "مشتریان",
+  customer: "مشتری",
+  customerName: "نام مشتری",
+  customerEmail: "ایمیل مشتری",
+  customerPhone: "تلفن مشتری",
+  customerAddress: "آدرس مشتری",
+  addCustomer: "افزودن مشتری",
+  editCustomer: "ویرایش مشتری",
+  deleteCustomer: "حذف مشتری",
+  customerDeleted: "مشتری با موفقیت حذف شد",
+  customerSaved: "مشتری با موفقیت ذخیره شد",
+
+  // User
+  users: "کاربران",
+  user: "کاربر",
+  username: "نام کاربری",
+  fullName: "نام کامل",
+  email: "ایمیل",
+  password: "رمز عبور",
+  isAdmin: "مدیر سیستم",
+  assignCompany: "اختصاص شرکت",
+  addUser: "افزودن کاربر",
+  editUser: "ویرایش کاربر",
+  deleteUser: "حذف کاربر",
+  userDeleted: "کاربر با موفقیت حذف شد",
+  userSaved: "کاربر با موفقیت ذخیره شد",
+
+  // Invoice
+  invoices: "فاکتورها",
+  invoice: "فاکتور",
+  invoiceNumber: "شماره فاکتور",
+  invoiceDate: "تاریخ فاکتور",
+  dueDate: "تاریخ سررسید",
+  totalAmount: "مجموع مبلغ",
+  status: "وضعیت",
+  draft: "پیش‌نویس",
+  sent: "ارسال‌شده",
+  paid: "پرداخت‌شده",
+  overdue: "معوق",
+  addInvoice: "افزودن فاکتور",
+  editInvoice: "ویرایش فاکتور",
+  deleteInvoice: "حذف فاکتور",
+  invoiceDeleted: "فاکتور با موفقیت حذف شد",
+  invoiceSaved: "فاکتور با موفقیت ذخیره شد",
+
+  // Invoice Items
+  items: "اقلام",
+  item: "اقلام",
+  description: "توضیحات",
+  quantity: "تعداد",
+  unitPrice: "قیمت واحد",
+  discount: "تخفیف",
+  addItem: "افزودن اقلام",
+  editItem: "ویرایش اقلام",
+  deleteItem: "حذف اقلام",
+  itemDeleted: "اقلام با موفقیت حذف شد",
+  itemSaved: "اقلام با موفقیت ذخیره شد",
+
+  // Commission
+  commissions: "کمیسیون‌ها",
+  commission: "کمیسیون",
+  commissionPercent: "درصد کمیسیون",
+  commissionAmount: "مبلغ کمیسیون",
+  paidDate: "تاریخ پرداخت",
+  createSnapshot: "ایجاد عکس‌العمل کمیسیون",
+  commissionDeleted: "کمیسیون با موفقیت حذف شد",
+  commissionSaved: "کمیسیون با موفقیت ذخیره شد",
+
+  // Login
+  login: "ورود",
+  emailOrUsername: "ایمیل یا نام کاربری",
+  passwordRequired: "رمز عبور الزامی است",
+  emailRequired: "ایمیل یا نام کاربری الزامی است",
+  invalidCredentials: "ایمیل/نام کاربری یا رمز عبور اشتباه است",
+  loginSuccess: "ورود موفق",
+  logout: "خروج",
+  dashboard: "داشبورد",
+
+  // Messages
+  confirmDelete: "آیا از حذف این موارد اطمینان دارید؟",
+  emptySearch: "نتیجه‌ای برای جستجوی شما یافت نشد",
+  errorLoadingData: "خطا در بارگذاری داده‌ها",
+  errorSavingData: "خطا در ذخیره داده‌ها",
+  errorDeletingData: "خطا در حذف داده‌ها",
+  requiredField: "این فیلد الزامی است",
+};
+
+export const INVOICE_STATUS_OPTIONS = [
+  { value: "draft", label: "پیش‌نویس" },
+  { value: "sent", label: "ارسال‌شده" },
+  { value: "paid", label: "پرداخت‌شده" },
+  { value: "overdue", label: "معوق" },
+];
