@@ -867,7 +867,7 @@ async def get_product_by_code(
 
 @app.get("/api/products/search-suggestions", response_model=List[ProductSearchResponse])
 async def search_products(
-    q: str,
+    q: str = "",
     db: Session = Depends(get_db),
     context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_READ)),
 ):
