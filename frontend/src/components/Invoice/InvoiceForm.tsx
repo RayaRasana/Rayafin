@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -20,6 +20,8 @@ import {
   FormControl,
   InputLabel,
   Stack,
+  Autocomplete,
+  CircularProgress,
 } from "@mui/material";
 import { SelectChangeEvent } from "@mui/material";
 import { Delete, Add } from "@mui/icons-material";
@@ -29,6 +31,7 @@ import { Invoice, InvoiceItem } from "../../types";
 import { validateInvoiceTotal } from "../../utils/validation";
 import { PERSIAN_LABELS, INVOICE_STATUS_OPTIONS } from "../../utils/persian";
 import { normalizeToHtmlDate, today } from "../../utils/dateUtils";
+import { productAPI, ProductSearchResult } from "../../api/products";
 
 interface InvoiceFormProps {
   open: boolean;
@@ -76,6 +79,13 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Product autocomplete state
+  const [productInput, setProductInput] = useState("");
+  const [productSuggestions, setProductSuggestions] = useState<ProductSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string>("");
+  const [searchTimeoutId, setSearchTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (invoice) {
       setFormData({
@@ -109,6 +119,9 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
       setItems([]);
     }
     setErrors({});
+    setProductInput("");
+    setProductSuggestions([]);
+    setSearchError("");
   }, [invoice, open, companies]);
 
   useEffect(() => {
@@ -127,6 +140,120 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
       setFormData((prev) => ({ ...prev, customer_id: availableCustomerIds[0] }));
     }
   }, [customers, formData.company_id, formData.customer_id]);
+
+  /**
+   * Debounced product search.
+   * Called when user types in product input field.
+   * Fetches matching products from backend (max 10 results).
+   */
+  const handleProductSearch = useCallback(
+    (value: string) => {
+      setProductInput(value);
+
+      // Clear previous timeout
+      if (searchTimeoutId) {
+        clearTimeout(searchTimeoutId);
+      }
+
+      // If search is empty, clear suggestions
+      if (!value.trim()) {
+        setProductSuggestions([]);
+        setSearchError("");
+        return;
+      }
+
+      // Require valid company_id to search
+      if (!formData.company_id || formData.company_id <= 0) {
+        setSearchError("لطفاً ابتدا شرکت را انتخاب کنید");
+        setProductSuggestions([]);
+        return;
+      }
+
+      setSearchError("");
+
+      // Debounce 300ms before making request
+      const timeoutId = setTimeout(async () => {
+        try {
+          setIsSearching(true);
+          const results = await productAPI.search(value, formData.company_id);
+          setProductSuggestions(results);
+        } catch (error: any) {
+          console.error("Product search error:", error);
+          setSearchError("خطا در جستجوی محصول");
+          setProductSuggestions([]);
+        } finally {
+          setIsSearching(false);
+        }
+      }, 300);
+
+      setSearchTimeoutId(timeoutId);
+    },
+    [formData.company_id, searchTimeoutId]
+  );
+
+  /**
+   * Handle product selection from autocomplete dropdown.
+   * Autofills description (name), unit_price, and sets quantity=1.
+   */
+  const handleProductSelect = useCallback(
+    (product: ProductSearchResult | null) => {
+      if (!product) {
+        return;
+      }
+
+      setNewItem({
+        description: product.name,
+        quantity: 1,
+        unit_price: product.unit_price,
+        discount: 0,
+      });
+
+      setProductInput("");
+      setProductSuggestions([]);
+      setSearchError("");
+    },
+    []
+  );
+
+  /**
+   * Handle exact code match on blur or Enter.
+   * Calls /api/products/by-code/{code} endpoint.
+   */
+  const handleProductCodeBlur = useCallback(async () => {
+    const trimmedInput = productInput.trim();
+    if (!trimmedInput) return;
+
+    // Require valid company_id to search
+    if (!formData.company_id || formData.company_id <= 0) {
+      setSearchError("لطفاً ابتدا شرکت را انتخاب کنید");
+      return;
+    }
+
+    // Only try exact match if input looks like a code (no spaces, shorter than full name)
+    if (trimmedInput.length <= 20) {
+      try {
+        setIsSearching(true);
+        const product = await productAPI.getByCode(trimmedInput, formData.company_id);
+        setNewItem({
+          description: product.name,
+          quantity: 1,
+          unit_price: product.unit_price,
+          discount: 0,
+        });
+        setProductInput("");
+        setProductSuggestions([]);
+        setSearchError("");
+      } catch (error: any) {
+        // 404 is expected if code doesn't exist - just continue with manual entry
+        if (error.response?.status !== 404) {
+          console.error("Product lookup error:", error);
+          setSearchError("خطا در بارگذاری محصول");
+        }
+      } finally {
+        setIsSearching(false);
+      }
+    }
+  }, [productInput, formData.company_id]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -175,6 +302,9 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
       unit_price: 0,
       discount: 0,
     });
+    setProductInput("");
+    setProductSuggestions([]);
+    setSearchError("");
   };
 
   const handleDeleteItem = (index: number) => {
@@ -318,15 +448,61 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
 
             <Stack spacing={1} sx={{ mb: 2, p: 1, bgcolor: "#f5f5f5", borderRadius: 1 }}>
               <Stack direction="row" spacing={1}>
-                <TextField
+                {/* Product autocomplete with search */}
+                <Autocomplete
                   fullWidth
                   size="small"
-                  label={PERSIAN_LABELS.description}
-                  value={newItem.description}
-                  onChange={(e) =>
-                    setNewItem({ ...newItem, description: e.target.value })
+                  options={productSuggestions}
+                  getOptionLabel={(option) =>
+                    typeof option === "string"
+                      ? option
+                      : `${option.name}${option.sku ? ` (${option.sku})` : ""}`
                   }
-                  dir="rtl"
+                  inputValue={productInput}
+                  onInputChange={(_, value) => handleProductSearch(value)}
+                  onChange={(_, value) => handleProductSelect(value)}
+                  onBlur={handleProductCodeBlur}
+                  loading={isSearching}
+                  noOptionsText="محصولی پیدا نشد"
+                  loadingText="درحال جستجو..."
+                  freeSolo
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={PERSIAN_LABELS.description}
+                      dir="rtl"
+                      error={!!searchError}
+                      helperText={searchError}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {isSearching ? (
+                              <CircularProgress color="inherit" size={20} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props} dir="rtl">
+                      <Box>
+                        <div>
+                          <strong>{option.name}</strong>
+                          {option.sku && (
+                            <span style={{ marginRight: "8px", color: "#666" }}>
+                              ({option.sku})
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: "0.85em", color: "#999" }}>
+                          {PERSIAN_LABELS.unitPrice}: {option.unit_price.toLocaleString()}
+                        </div>
+                      </Box>
+                    </li>
+                  )}
                 />
                 <TextField
                   size="small"
@@ -375,6 +551,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
                   variant="contained"
                   onClick={handleAddItem}
                   startIcon={<Add />}
+                  className="form-primary-button"
                   sx={{ minWidth: "80px" }}
                 >
                   {PERSIAN_LABELS.add}

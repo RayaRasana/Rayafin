@@ -822,6 +822,88 @@ async def delete_product(
     db.commit()
     return None
 
+# ============================================================================
+# Product Search Endpoints (for Invoice autocomplete)
+# ============================================================================
+
+class ProductSearchResponse(BaseModel):
+    """Minimal product response for search/autocomplete."""
+    id: int
+    name: str
+    sku: Optional[str]
+    unit_price: float
+
+    class Config:
+        from_attributes = True
+
+@app.get("/api/products/by-code/{code}", response_model=ProductSearchResponse)
+async def get_product_by_code(
+    code: str,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_READ)),
+):
+    """
+    Get product by SKU (product code) - exact match.
+    Used when user enters a code and presses Enter or blurs the field.
+    
+    Returns: ProductSearchResponse with id, name, sku, unit_price
+    Raises: 404 if not found
+    """
+    product = db.query(Product).filter(
+        Product.sku == code.strip(),
+        Product.company_id == context.company_id,
+        Product.is_active == True,
+    ).first()
+    
+    if not product:
+        raise HTTPException(status_code=404, detail=f"Product with code '{code}' not found")
+    
+    return {
+        "id": product.id,
+        "name": product.name,
+        "sku": product.sku,
+        "unit_price": float(product.unit_price),
+    }
+
+@app.get("/api/products/search-suggestions", response_model=List[ProductSearchResponse])
+async def search_products(
+    q: str,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_READ)),
+):
+    """
+    Search products by name or SKU (partial, case-insensitive).
+    Returns max 10 results for performance.
+    
+    Query Parameters:
+    - q: Search string (min 1 char, searches both name and sku)
+    
+    Example: GET /api/products/search-suggestions?q=laptop
+    Returns: List[ProductSearchResponse]
+    """
+    if not q or len(q.strip()) < 1:
+        return []
+    
+    search_pattern = f"%{q.strip().lower()}%"
+    
+    products = db.query(Product).filter(
+        Product.company_id == context.company_id,
+        Product.is_active == True,
+    ).filter(
+        (Product.name.ilike(search_pattern)) |
+        (Product.sku.ilike(search_pattern))
+    ).limit(10).all()
+    
+    return [
+        {
+            "id": product.id,
+            "name": product.name,
+            "sku": product.sku,
+            "unit_price": float(product.unit_price),
+        }
+        for product in products
+    ]
+
 @app.post("/api/products/import", status_code=201)
 async def import_products(
     file: UploadFile = File(...),
