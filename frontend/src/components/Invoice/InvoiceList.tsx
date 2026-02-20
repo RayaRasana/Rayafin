@@ -241,28 +241,18 @@ export const InvoiceList: React.FC = () => {
             </Box>
             <RoleGuard permission="invoice:create">
               <Button
-                variant="contained"
+                variant="outlined"
+                className="add-button"
                 startIcon={<Add />}
                 onClick={handleAddClick}
                 disabled={!canCreateInvoices}
                 sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                  color: "#2e5090",
                   fontWeight: 700,
-                  borderRadius: "12px",
                   px: 3,
                   py: 1.2,
-                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
-                  transition: "all 0.3s ease",
-
-                  "&:hover": {
-                    backgroundColor: "white",
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 6px 24px rgba(0, 0, 0, 0.25)",
-                  },
                   "&:disabled": {
-                    backgroundColor: "rgba(255, 255, 255, 0.5)",
-                    color: "#94a3b8",
+                    opacity: 0.6,
+                    cursor: "not-allowed",
                   },
                 }}
               >

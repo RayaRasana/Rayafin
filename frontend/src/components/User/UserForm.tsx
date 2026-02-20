@@ -234,12 +234,18 @@ export const UserForm: React.FC<UserFormProps> = ({
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 2, gap: 1 }}>
-        <Button onClick={onClose} disabled={isLoading}>
+        <Button
+          onClick={onClose}
+          disabled={isLoading}
+          variant="outlined"
+          className="cancel-button"
+        >
           {PERSIAN_LABELS.cancel}
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
+          className="form-primary-button"
           disabled={isLoading}
         >
           {PERSIAN_LABELS.save}

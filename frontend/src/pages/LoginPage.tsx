@@ -187,17 +187,29 @@ export const LoginPage: React.FC = () => {
               type="submit"
               disabled={loading}
               sx={{
+                background: "linear-gradient(135deg, #3f5bd9, #2f4fc4)",
+                color: "#ffffff",
+                border: "none",
                 borderRadius: "12px",
-                padding: "12px 24px",
+                padding: "12px",
                 fontSize: "1rem",
                 fontWeight: 600,
                 textTransform: "none",
                 boxShadow: "0 4px 12px rgba(46, 80, 144, 0.3)",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                transition: "all 0.2s ease",
 
                 "&:hover:not(:disabled)": {
-                  boxShadow: "0 8px 24px rgba(46, 80, 144, 0.4)",
-                  transform: "translateY(-2px)",
+                  background: "#2f4fc4",
+                  boxShadow: "0 8px 20px rgba(47, 79, 196, 0.35)",
+                },
+
+                "&:active:not(:disabled)": {
+                  transform: "scale(0.98)",
+                },
+
+                "&:focus-visible": {
+                  outline: "3px solid rgba(63, 91, 217, 0.35)",
+                  outlineOffset: "2px",
                 },
 
                 "&:disabled": {

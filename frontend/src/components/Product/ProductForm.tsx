@@ -272,23 +272,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         <Button
           onClick={onClose}
           variant="outlined"
+          className="cancel-button"
           disabled={isLoading}
-          sx={{
-            borderRadius: "8px",
-            textTransform: "none",
-          }}
         >
           {PERSIAN_LABELS.cancel}
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
+          className="form-primary-button"
           disabled={isLoading}
-          sx={{
-            borderRadius: "8px",
-            textTransform: "none",
-            background: "linear-gradient(135deg, #2e5090 0%, #3d6ca8 100%)",
-          }}
         >
           {isLoading ? PERSIAN_LABELS.loading : PERSIAN_LABELS.save}
         </Button>

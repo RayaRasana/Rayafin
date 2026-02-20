@@ -441,11 +441,18 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
           </Box>
         </Stack>
       </DialogContent>
-      <DialogActions sx={{ p: 2 }}>
-        <Button onClick={onClose}>{PERSIAN_LABELS.cancel}</Button>
+      <DialogActions sx={{ p: 2, gap: 1 }}>
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          className="cancel-button"
+        >
+          {PERSIAN_LABELS.cancel}
+        </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
+          className="form-primary-button"
           disabled={isLoading}
         >
           {PERSIAN_LABELS.save}

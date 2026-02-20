@@ -2,9 +2,9 @@ import { createTheme } from "@mui/material/styles";
 
 // Rayarasana Brand Colors - Professional Accounting System
 const rayarasanaColors = {
-  primary: "rgb(255, 255, 255)", // Deep professional blue
+  primary: "#3f5bd9", // Deep professional blue
   primaryLight: "#3d6ca8",
-  primaryDark: "#1f3860",
+  primaryDark: "#2f4fc4",
   secondary: "#6366f1", // Modern indigo
   accent: "#10b981", // Success green
   warning: "#f59e0b", // Amber
@@ -113,7 +113,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           boxShadow: `0 2px 8px rgba(0, 0, 0, 0.08)`,
-          backgroundColor: rayarasanaColors.primary,
+          backgroundColor: "#2e5090",
         },
       },
     },
@@ -126,47 +126,72 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: "12px",
-          padding: "10px 24px",
+          padding: "10px 16px",
           fontSize: "0.95rem",
           fontWeight: 600,
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: "all 0.2s ease",
           boxShadow: "0 2px 8px rgba(46, 80, 144, 0.12)",
 
           "&:hover": {
             boxShadow: "0 8px 16px rgba(46, 80, 144, 0.24)",
-            transform: "translateY(-2px)",
           },
 
           "&:active": {
-            transform: "translateY(0px)",
+            transform: "scale(0.98)",
             boxShadow: "0 2px 4px rgba(46, 80, 144, 0.12)",
+          },
+
+          "&:focus-visible": {
+            outline: "3px solid rgba(63, 91, 217, 0.22)",
+            outlineOffset: "2px",
           },
         },
 
         contained: {
-          backgroundColor: rayarasanaColors.primary,
+          background: "linear-gradient(135deg, #3f5bd9, #2f4fc4)",
           color: "#ffffff",
+          border: "1px solid transparent",
 
           "&:hover": {
-            backgroundColor: rayarasanaColors.primaryLight,
+            background: "#2f4fc4",
           },
         },
 
         outlined: {
-          borderColor: rayarasanaColors.primary,
-          color: rayarasanaColors.primary,
+          borderColor: "#94a3b8",
+          color: rayarasanaColors.textPrimary,
+          backgroundColor: "#e2e8f0",
 
           "&:hover": {
-            backgroundColor: `${rayarasanaColors.primary}08`,
-            borderColor: rayarasanaColors.primaryLight,
+            backgroundColor: "#cbd5e1",
+            borderColor: "#94a3b8",
           },
         },
 
         text: {
-          color: rayarasanaColors.primary,
+          color: rayarasanaColors.textPrimary,
 
           "&:hover": {
-            backgroundColor: `${rayarasanaColors.primary}08`,
+            backgroundColor: "rgba(63, 91, 217, 0.08)",
+          },
+        },
+
+        containedError: {
+          background: "#ef4444",
+          color: "#ffffff",
+
+          "&:hover": {
+            background: "#dc2626",
+          },
+        },
+
+        containedSecondary: {
+          background: "#e2e8f0",
+          color: rayarasanaColors.textPrimary,
+          border: "1px solid #cbd5e1",
+
+          "&:hover": {
+            background: "#cbd5e1",
           },
         },
       },
@@ -207,7 +232,7 @@ export const theme = createTheme({
             },
 
             "&.Mui-focused": {
-              backgroundColor: "#ffffff",
+              backgroundColor: rayarasanaColors.surfaceVariant,
               "& .MuiOutlinedInput-notchedOutline": {
                 borderColor: rayarasanaColors.primary,
                 borderWidth: "2px",
