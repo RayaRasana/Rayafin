@@ -753,75 +753,6 @@ async def list_products(
     products = query.offset(skip).limit(limit).all()
     return products
 
-@app.get("/api/products/{product_id}", response_model=ProductResponse)
-async def get_product(
-    product_id: int,
-    db: Session = Depends(get_db),
-    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_READ)),
-):
-    """Get a product by ID."""
-    
-    product = db.query(Product).filter(
-        Product.id == product_id,
-        Product.company_id == context.company_id,
-    ).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return product
-
-@app.put("/api/products/{product_id}", response_model=ProductResponse)
-async def update_product(
-    product_id: int,
-    product_update: ProductUpdate,
-    db: Session = Depends(get_db),
-    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_UPDATE)),
-):
-    """Update a product."""
-    
-    product = db.query(Product).filter(
-        Product.id == product_id,
-        Product.company_id == context.company_id,
-    ).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
-    if product_update.name is not None:
-        product.name = product_update.name
-    if product_update.description is not None:
-        product.description = product_update.description
-    if product_update.sku is not None:
-        product.sku = product_update.sku
-    if product_update.unit_price is not None:
-        product.unit_price = product_update.unit_price
-    if product_update.cost_price is not None:
-        product.cost_price = product_update.cost_price
-    if product_update.stock_quantity is not None:
-        product.stock_quantity = product_update.stock_quantity
-    if product_update.is_active is not None:
-        product.is_active = product_update.is_active
-    
-    db.commit()
-    db.refresh(product)
-    return product
-
-@app.delete("/api/products/{product_id}", status_code=204)
-async def delete_product(
-    product_id: int,
-    db: Session = Depends(get_db),
-    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_DELETE)),
-):
-    """Delete a product."""
-    product = db.query(Product).filter(
-        Product.id == product_id,
-        Product.company_id == context.company_id,
-    ).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-
-    db.delete(product)
-    db.commit()
-    return None
-
 # ============================================================================
 # Product Search Endpoints (for Invoice autocomplete)
 # ============================================================================
@@ -835,35 +766,6 @@ class ProductSearchResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-@app.get("/api/products/by-code/{code}", response_model=ProductSearchResponse)
-async def get_product_by_code(
-    code: str,
-    db: Session = Depends(get_db),
-    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_READ)),
-):
-    """
-    Get product by SKU (product code) - exact match.
-    Used when user enters a code and presses Enter or blurs the field.
-    
-    Returns: ProductSearchResponse with id, name, sku, unit_price
-    Raises: 404 if not found
-    """
-    product = db.query(Product).filter(
-        Product.sku == code.strip(),
-        Product.company_id == context.company_id,
-        Product.is_active == True,
-    ).first()
-    
-    if not product:
-        raise HTTPException(status_code=404, detail=f"Product with code '{code}' not found")
-    
-    return {
-        "id": product.id,
-        "name": product.name,
-        "sku": product.sku,
-        "unit_price": float(product.unit_price),
-    }
 
 @app.get("/api/products/search-suggestions", response_model=List[ProductSearchResponse])
 async def search_products(
@@ -903,6 +805,35 @@ async def search_products(
         }
         for product in products
     ]
+
+@app.get("/api/products/by-code/{code}", response_model=ProductSearchResponse)
+async def get_product_by_code(
+    code: str,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_READ)),
+):
+    """
+    Get product by SKU (product code) - exact match.
+    Used when user enters a code and presses Enter or blurs the field.
+    
+    Returns: ProductSearchResponse with id, name, sku, unit_price
+    Raises: 404 if not found
+    """
+    product = db.query(Product).filter(
+        Product.sku == code.strip(),
+        Product.company_id == context.company_id,
+        Product.is_active == True,
+    ).first()
+    
+    if not product:
+        raise HTTPException(status_code=404, detail=f"Product with code '{code}' not found")
+    
+    return {
+        "id": product.id,
+        "name": product.name,
+        "sku": product.sku,
+        "unit_price": float(product.unit_price),
+    }
 
 @app.post("/api/products/import", status_code=201)
 async def import_products(
@@ -1016,6 +947,78 @@ async def import_products(
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
 
+# ============================================================================
+# Product ID-based Endpoints (dynamic routes - defined last to avoid shadowing)
+# ============================================================================
+
+@app.get("/api/products/{product_id}", response_model=ProductResponse)
+async def get_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_READ)),
+):
+    """Get a product by ID."""
+    
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.company_id == context.company_id,
+    ).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
+
+@app.put("/api/products/{product_id}", response_model=ProductResponse)
+async def update_product(
+    product_id: int,
+    product_update: ProductUpdate,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_UPDATE)),
+):
+    """Update a product."""
+    
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.company_id == context.company_id,
+    ).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    if product_update.name is not None:
+        product.name = product_update.name
+    if product_update.description is not None:
+        product.description = product_update.description
+    if product_update.sku is not None:
+        product.sku = product_update.sku
+    if product_update.unit_price is not None:
+        product.unit_price = product_update.unit_price
+    if product_update.cost_price is not None:
+        product.cost_price = product_update.cost_price
+    if product_update.stock_quantity is not None:
+        product.stock_quantity = product_update.stock_quantity
+    if product_update.is_active is not None:
+        product.is_active = product_update.is_active
+    
+    db.commit()
+    db.refresh(product)
+    return product
+
+@app.delete("/api/products/{product_id}", status_code=204)
+async def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    context: AccessContext = Depends(require_permission(PermissionKey.PRODUCT_DELETE)),
+):
+    """Delete a product."""
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.company_id == context.company_id,
+    ).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    db.delete(product)
+    db.commit()
+    return None
 # ============================================================================
 # User Endpoints
 # ============================================================================

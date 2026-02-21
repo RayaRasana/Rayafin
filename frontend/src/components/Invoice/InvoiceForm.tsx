@@ -25,13 +25,18 @@ import {
 } from "@mui/material";
 import { SelectChangeEvent } from "@mui/material";
 import { Delete, Add } from "@mui/icons-material";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/store";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../../store/store";
+import { setCompanies } from "../../store/companySlice";
+import { setCustomers } from "../../store/customerSlice";
 import { Invoice, InvoiceItem } from "../../types";
 import { validateInvoiceTotal } from "../../utils/validation";
 import { PERSIAN_LABELS, INVOICE_STATUS_OPTIONS } from "../../utils/persian";
 import { normalizeToHtmlDate, today } from "../../utils/dateUtils";
 import { productAPI, ProductSearchResult } from "../../api/products";
+import { companyAPI } from "../../api/companies";
+import { customerAPI } from "../../api/customers";
+import { useAuth } from "../../context/AuthContext";
 
 interface InvoiceFormProps {
   open: boolean;
@@ -51,6 +56,8 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
   onClose,
   isLoading = false,
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useAuth();
   const companies = useSelector((state: RootState) => state.companies.items);
   const customers = useSelector((state: RootState) => state.customers.items);
   
@@ -85,6 +92,50 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string>("");
   const [searchTimeoutId, setSearchTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+  /**
+   * Initialize companies and customers data when form mounts.
+   * This ensures data is available even when navigating directly to Invoice page.
+   * Loads data only if not already present (no duplicate fetching).
+   */
+  useEffect(() => {
+    const initializeData = async () => {
+      const fetchPromises: Promise<void>[] = [];
+
+      // Load companies if not already loaded
+      if (companies.length === 0) {
+        fetchPromises.push(
+          companyAPI.getAll().then((data) => {
+            dispatch(setCompanies(data));
+          }).catch((error) => {
+            console.error("Failed to load companies:", error);
+          })
+        );
+      }
+
+      // Load customers if not already loaded
+      // Use user's company_id or the first company's id
+      const companyIdForCustomers = user?.company_id || companies[0]?.id;
+      if (customers.length === 0 && companyIdForCustomers) {
+        fetchPromises.push(
+          customerAPI.getAll(companyIdForCustomers).then((data) => {
+            dispatch(setCustomers(data));
+          }).catch((error) => {
+            console.error("Failed to load customers:", error);
+          })
+        );
+      }
+
+      // Execute all fetch operations in parallel
+      if (fetchPromises.length > 0) {
+        await Promise.all(fetchPromises);
+      }
+    };
+
+    if (open) {
+      initializeData();
+    }
+  }, [open, dispatch, companies.length, customers.length, user?.company_id]);
 
   useEffect(() => {
     if (invoice) {
