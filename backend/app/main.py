@@ -209,14 +209,23 @@ class CompanyResponse(BaseModel):
 class CustomerCreate(BaseModel):
     company_id: int
     name: str
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
 
 class CustomerUpdate(BaseModel):
     name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
 
 class CustomerResponse(BaseModel):
     id: int
     company_id: int
     name: str
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     
@@ -626,7 +635,10 @@ async def create_customer(
     
     new_customer = Customer(
         company_id=customer.company_id,
-        name=customer.name
+        name=customer.name,
+        phone=customer.phone,
+        email=customer.email,
+        address=customer.address
     )
     db.add(new_customer)
     db.commit()
@@ -682,8 +694,14 @@ async def update_customer(
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
     
-    if customer_update.name:
+    if customer_update.name is not None:
         customer.name = customer_update.name
+    if customer_update.phone is not None:
+        customer.phone = customer_update.phone
+    if customer_update.email is not None:
+        customer.email = customer_update.email
+    if customer_update.address is not None:
+        customer.address = customer_update.address
     
     db.commit()
     db.refresh(customer)

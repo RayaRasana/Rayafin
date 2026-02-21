@@ -236,6 +236,7 @@ class Customer(Base):
     name = Column(String(255), nullable=False, index=True)
     phone = Column(String(20))
     email = Column(String(255), index=True)
+    address = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

@@ -73,6 +73,8 @@ export const InvoiceList: React.FC = () => {
     user?.company_id || companies[0]?.id || 0
   );
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState<Record<number, boolean>>({});
+  const [detailsLoaded, setDetailsLoaded] = useState<Set<number>>(new Set());
 
   const loadInvoices = useCallback(async (companyId: number) => {
     try {
@@ -170,12 +172,28 @@ export const InvoiceList: React.FC = () => {
     }
   };
 
-  const toggleRowExpansion = (invoiceId: number) => {
+  const toggleRowExpansion = async (invoiceId: number) => {
+    const isExpanding = !expandedRows.includes(invoiceId);
+    
     setExpandedRows((prev) =>
       prev.includes(invoiceId)
         ? prev.filter((id) => id !== invoiceId)
         : [...prev, invoiceId]
     );
+
+    // If expanding and details not loaded yet, fetch them
+    if (isExpanding && !detailsLoaded.has(invoiceId)) {
+      try {
+        setLoadingDetails((prev) => ({ ...prev, [invoiceId]: true }));
+        const detailedInvoice = await invoiceAPI.getById(invoiceId);
+        dispatch(updateInvoice(detailedInvoice));
+        setDetailsLoaded((prev) => new Set([...prev, invoiceId]));
+      } catch (error) {
+        console.error("Failed to load invoice details:", error);
+      } finally {
+        setLoadingDetails((prev) => ({ ...prev, [invoiceId]: false }));
+      }
+    }
   };
 
   if (loading) {
@@ -454,48 +472,62 @@ export const InvoiceList: React.FC = () => {
                         <Box sx={{ fontWeight: "bold", mb: 1 }}>
                           {PERSIAN_LABELS.items}
                         </Box>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell align="right">
-                                {PERSIAN_LABELS.description}
-                              </TableCell>
-                              <TableCell align="right">
-                                {PERSIAN_LABELS.quantity}
-                              </TableCell>
-                              <TableCell align="right">
-                                {PERSIAN_LABELS.unitPrice}
-                              </TableCell>
-                              <TableCell align="right">
-                                {PERSIAN_LABELS.discount}
-                              </TableCell>
-                              <TableCell align="right">
-                                {PERSIAN_LABELS.totalAmount}
-                              </TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {invoice.items?.map((item) => (
-                              <TableRow key={item.id}>
+                        {loadingDetails[invoice.id] ? (
+                          <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
+                            <CircularProgress size={24} />
+                          </Box>
+                        ) : (
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
                                 <TableCell align="right">
-                                  {item.description}
+                                  {PERSIAN_LABELS.description}
                                 </TableCell>
                                 <TableCell align="right">
-                                  {item.quantity}
+                                  {PERSIAN_LABELS.quantity}
                                 </TableCell>
                                 <TableCell align="right">
-                                  {item.unit_price}
+                                  {PERSIAN_LABELS.unitPrice}
                                 </TableCell>
                                 <TableCell align="right">
-                                  {item.discount}
+                                  {PERSIAN_LABELS.discount}
                                 </TableCell>
                                 <TableCell align="right">
-                                  {item.total_amount}
+                                  {PERSIAN_LABELS.totalAmount}
                                 </TableCell>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                            </TableHead>
+                            <TableBody>
+                              {invoice.items && invoice.items.length > 0 ? (
+                                invoice.items.map((item) => (
+                                  <TableRow key={item.id}>
+                                    <TableCell align="right">
+                                      {item.description}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {item.quantity}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {item.unit_price}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {item.discount}
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      {item.total_amount}
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                              ) : (
+                                <TableRow>
+                                  <TableCell colSpan={5} align="center" sx={{ py: 2, color: "#999" }}>
+                                    {PERSIAN_LABELS.noItems || "هیچ آیتمی وجود ندارد"}
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </TableBody>
+                          </Table>
+                        )}
                       </Box>
                     </Collapse>
                   </TableCell>
