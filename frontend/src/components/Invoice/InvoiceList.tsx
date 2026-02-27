@@ -106,16 +106,25 @@ export const InvoiceList: React.FC = () => {
   }, [selectedCompanyId, loadInvoices]);
 
   const handleAddClick = () => {
+    if (!canCreateInvoices) {
+      return;
+    }
     setSelectedInvoice(null);
     setFormOpen(true);
   };
 
   const handleEditClick = (invoice: Invoice) => {
+    if (!canUpdateInvoices) {
+      return;
+    }
     setSelectedInvoice(invoice);
     setFormOpen(true);
   };
 
   const handleDeleteClick = (id: number) => {
+    if (!canDeleteInvoices) {
+      return;
+    }
     setDeleteId(id);
     setDeleteDialogOpen(true);
   };

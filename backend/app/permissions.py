@@ -37,8 +37,8 @@ class PermissionKey(str, Enum):
 
 PERMISSION_MATRIX: Dict[PermissionKey, FrozenSet[RoleName]] = {
     PermissionKey.INVOICE_CREATE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
-    PermissionKey.INVOICE_UPDATE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
-    PermissionKey.INVOICE_DELETE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
+    PermissionKey.INVOICE_UPDATE: frozenset({RoleName.OWNER}),
+    PermissionKey.INVOICE_DELETE: frozenset({RoleName.OWNER}),
     PermissionKey.INVOICE_LOCK: frozenset({RoleName.OWNER}),
     PermissionKey.INVOICE_UNLOCK: frozenset({RoleName.OWNER}),
     PermissionKey.INVOICE_READ: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT, RoleName.SALES}),
@@ -54,10 +54,10 @@ PERMISSION_MATRIX: Dict[PermissionKey, FrozenSet[RoleName]] = {
     PermissionKey.CUSTOMER_DELETE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
 
     PermissionKey.PRODUCT_READ: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT, RoleName.SALES}),
-    PermissionKey.PRODUCT_CREATE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
-    PermissionKey.PRODUCT_UPDATE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
-    PermissionKey.PRODUCT_DELETE: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
-    PermissionKey.PRODUCT_IMPORT: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
+    PermissionKey.PRODUCT_CREATE: frozenset({RoleName.OWNER}),
+    PermissionKey.PRODUCT_UPDATE: frozenset({RoleName.OWNER}),
+    PermissionKey.PRODUCT_DELETE: frozenset({RoleName.OWNER}),
+    PermissionKey.PRODUCT_IMPORT: frozenset({RoleName.OWNER}),
 
     PermissionKey.AUDIT_READ: frozenset({RoleName.OWNER, RoleName.ACCOUNTANT}),
 }

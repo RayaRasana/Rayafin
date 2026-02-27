@@ -45,6 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation();
   const { user, logout } = useAuth();
   const canReadCompanies = hasPermission(user?.role, "company:read");
+  const canManageUsers = user?.role === "OWNER";
 
   const menuItems = useMemo<MenuItemConfig[]>(() => {
     const items: MenuItemConfig[] = [
@@ -59,11 +60,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         icon: <Inventory2 fontSize="small" />,
       },
       {
-        label: PERSIAN_LABELS.users,
-        path: "/users",
-        icon: <Group fontSize="small" />,
-      },
-      {
         label: PERSIAN_LABELS.invoices,
         path: "/invoices",
         icon: <ReceiptLong fontSize="small" />,
@@ -75,6 +71,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       },
     ];
 
+    if (canManageUsers) {
+      items.splice(2, 0, {
+        label: PERSIAN_LABELS.users,
+        path: "/users",
+        icon: <Group fontSize="small" />,
+      });
+    }
+
     if (canReadCompanies) {
       items.unshift({
         label: PERSIAN_LABELS.companies,
@@ -84,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
 
     return items;
-  }, [canReadCompanies]);
+  }, [canReadCompanies, canManageUsers]);
 
   const handleLogout = () => {
     logout();
