@@ -1,5 +1,18 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { Company, CompanyState } from "../types";
+import { companyAPI } from "../api/companies";
+
+export const fetchCompanies = createAsyncThunk(
+  "companies/fetchCompanies",
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await companyAPI.getAll();
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to fetch companies");
+    }
+  }
+);
 
 const initialState: CompanyState = {
   items: [],
@@ -36,6 +49,22 @@ const companySlice = createSlice({
     setSelectedCompany: (state, action: PayloadAction<Company | null>) => {
       state.selectedCompany = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchCompanies.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCompanies.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchCompanies.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 

@@ -5,6 +5,7 @@ import { Provider } from "react-redux";
 import { store } from "./store/store";
 import { theme } from "./theme/theme";
 import { AuthProvider } from "./context/AuthContext";
+import { DataPreloader } from "./components/Common/DataPreloader";
 import { Layout } from "./components/Common/Layout";
 import { ProtectedRoute } from "./components/Common/ProtectedRoute";
 import { LoginPage } from "./pages/Login";
@@ -33,74 +34,76 @@ const App: React.FC = () => {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={<LoginPage />} />
+          <DataPreloader>
+            <BrowserRouter>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/login" element={<LoginPage />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <HomeRoute />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/customers"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <CustomerList />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/products"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ProductList />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/users"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <UserList />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/invoices"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <InvoiceList />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/commissions"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <CommissionList />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </BrowserRouter>
+                {/* Protected Routes */}
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <HomeRoute />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/customers"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CustomerList />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/products"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ProductList />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/users"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <UserList />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/invoices"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <InvoiceList />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/commissions"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CommissionList />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </BrowserRouter>
+          </DataPreloader>
         </AuthProvider>
       </ThemeProvider>
     </Provider>

@@ -15,9 +15,6 @@ import {
   DialogContent,
   DialogActions,
   CircularProgress,
-  FormControl,
-  InputLabel,
-  Select,
   MenuItem,
   Stack,
   Card,
@@ -38,6 +35,7 @@ import {
 import { Product } from "../../types";
 import { productAPI } from "../../api/products";
 import { ProductForm } from "./ProductForm";
+import { SelectField } from "../Common/SelectField";
 import { PERSIAN_LABELS } from "../../utils/persian";
 import { useAuth } from "../../context/AuthContext";
 import { hasPermission } from "../../utils/rbac";
@@ -280,34 +278,12 @@ export const ProductList: React.FC = () => {
             {PERSIAN_LABELS.products}
           </Typography>
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            <Box sx={{ minWidth: 220 }}>
-              <FormControl
-                fullWidth
-                size="small"
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                  borderRadius: "10px",
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: "transparent",
-                    },
-                  },
-                }}
-              >
-                <InputLabel>{PERSIAN_LABELS.company}</InputLabel>
-                <Select
-                  value={selectedCompanyId}
-                  label={PERSIAN_LABELS.company}
-                  onChange={(e) => setSelectedCompanyId(Number(e.target.value))}
-                >
-                  {companies.map((company) => (
-                    <MenuItem key={company.id} value={company.id}>
-                      {company.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+            <SelectField
+              value={selectedCompanyId}
+              onChange={(e) => setSelectedCompanyId(Number(e.target.value))}
+              options={companies.map((c) => ({ id: c.id, name: c.name }))}
+              minWidth={160}
+            />
             {canImportProduct && (
               <Button
                 variant="outlined"
@@ -317,8 +293,9 @@ export const ProductList: React.FC = () => {
                   color: "white",
                   borderColor: "rgba(255, 255, 255, 0.8)",
                   fontWeight: 600,
-                  borderRadius: "10px",
+                  borderRadius: "12px",
                   px: 2.5,
+                  height: 44,
                   borderWidth: 2,
                   transition: "all 0.3s ease",
                   "&:hover": {
@@ -341,7 +318,8 @@ export const ProductList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   px: 3,
-                  py: 1.2,
+                  height: 44,
+                  borderRadius: "12px",
                 }}
               >
                 {PERSIAN_LABELS.addProduct}

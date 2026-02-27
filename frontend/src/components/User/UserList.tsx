@@ -18,9 +18,6 @@ import {
   Chip,
   Card,
   Typography,
-  FormControl,
-  InputLabel,
-  Select,
   MenuItem,
   Stack,
 } from "@mui/material";
@@ -37,6 +34,7 @@ import {
 import { User } from "../../types";
 import { userAPI } from "../../api/users";
 import { UserForm, UserFormData } from "./UserForm";
+import { SelectField } from "../Common/SelectField";
 import { PERSIAN_LABELS } from "../../utils/persian";
 import { useAuth } from "../../context/AuthContext";
 
@@ -176,9 +174,10 @@ export const UserList: React.FC = () => {
           boxShadow: "0 4px 20px rgba(46, 80, 144, 0.25)",
         }}
       >
-        <Box
+        <Stack
+          direction="row"
+          spacing={2}
           sx={{
-            display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
           }}
@@ -187,34 +186,12 @@ export const UserList: React.FC = () => {
             {PERSIAN_LABELS.users}
           </Typography>
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            <Box sx={{ minWidth: 220 }}>
-              <FormControl
-                fullWidth
-                size="small"
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                  borderRadius: "10px",
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: "transparent",
-                    },
-                  },
-                }}
-              >
-                <InputLabel>{PERSIAN_LABELS.companies}</InputLabel>
-                <Select
-                  value={selectedCompanyId}
-                  label={PERSIAN_LABELS.companies}
-                  onChange={(e) => setSelectedCompanyId(e.target.value as number)}
-                >
-                  {companies.map((company) => (
-                    <MenuItem key={company.id} value={company.id}>
-                      {company.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+            <SelectField
+              value={selectedCompanyId}
+              onChange={(e) => setSelectedCompanyId(e.target.value as number)}
+              options={companies.map((c) => ({ id: c.id, name: c.name }))}
+              minWidth={160}
+            />
             <Button
               variant="outlined"
               className="add-button"
@@ -223,13 +200,14 @@ export const UserList: React.FC = () => {
               sx={{
                 fontWeight: 700,
                 px: 3,
-                py: 1.2,
+                height: 44,
+                borderRadius: "12px",
               }}
             >
               {PERSIAN_LABELS.addUser}
             </Button>
           </Stack>
-        </Box>
+        </Stack>
       </Card>
 
       {/* Users Table */}

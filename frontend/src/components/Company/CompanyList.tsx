@@ -17,6 +17,7 @@ import {
   CircularProgress,
   Typography,
   Card,
+  Stack,
 } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
@@ -160,12 +161,10 @@ export const CompanyList: React.FC = () => {
           boxShadow: "0 4px 20px rgba(46, 80, 144, 0.25)",
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{ justifyContent: "space-between", alignItems: "center" }}
         >
           <Typography variant="h4" sx={{ fontWeight: 700, color: "white" }}>
             {PERSIAN_LABELS.companies}
@@ -179,13 +178,14 @@ export const CompanyList: React.FC = () => {
               sx={{
                 fontWeight: 700,
                 px: 3,
-                py: 1.2,
+                height: 44,
+                borderRadius: "12px",
               }}
             >
               {PERSIAN_LABELS.addCompany}
             </Button>
           )}
-        </Box>
+        </Stack>
       </Card>
 
       {/* Companies Table */}

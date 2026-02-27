@@ -1,5 +1,18 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { User, UserState } from "../types";
+import { userAPI } from "../api/users";
+
+export const fetchUsers = createAsyncThunk(
+  "users/fetchUsers",
+  async (companyId?: number, { rejectWithValue }) => {
+    try {
+      const data = await userAPI.getAll(companyId);
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to fetch users");
+    }
+  }
+);
 
 const initialState: UserState = {
   items: [],
@@ -36,6 +49,22 @@ const userSlice = createSlice({
     setSelectedUser: (state, action: PayloadAction<User | null>) => {
       state.selectedUser = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUsers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 

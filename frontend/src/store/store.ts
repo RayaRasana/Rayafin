@@ -5,6 +5,7 @@ import productReducer from "./productSlice";
 import userReducer from "./userSlice";
 import invoiceReducer from "./invoiceSlice";
 import commissionReducer from "./commissionSlice";
+import preloadReducer from "./preloadSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,7 +15,7 @@ export const store = configureStore({
     users: userReducer,
     invoices: invoiceReducer,
     commissions: commissionReducer,
-  },
+    preload: preloadReducer,  },
 });
 
 export type RootState = ReturnType<typeof store.getState>;

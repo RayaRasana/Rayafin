@@ -15,9 +15,6 @@ import {
   DialogContent,
   DialogActions,
   CircularProgress,
-  FormControl,
-  InputLabel,
-  Select,
   MenuItem,
   Stack,
   Chip,
@@ -31,6 +28,7 @@ import {
   Add,
   KeyboardArrowDown,
   KeyboardArrowUp,
+  PictureAsPdf,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store/store";
@@ -46,10 +44,13 @@ import { invoiceAPI } from "../../api/invoices";
 import { commissionAPI } from "../../api/commissions";
 import { useAuth } from "../../context/AuthContext";
 import { RoleGuard } from "../Common/RoleGuard";
+import { SelectField } from "../Common/SelectField";
 import { InvoiceForm } from "./InvoiceForm";
 import { PERSIAN_LABELS } from "../../utils/persian";
 import { formatDateToPersian } from "../../utils/dateUtils";
 import { hasPermission } from "../../utils/rbac";
+import { exportInvoiceToPDF } from "../../utils/pdfExport";
+import { generatePersianInvoicePDF } from "../../utils/pdfmakeInvoice";
 
 export const InvoiceList: React.FC = () => {
   const { user } = useAuth();
@@ -172,6 +173,97 @@ export const InvoiceList: React.FC = () => {
     }
   };
 
+  const handleExportPDF = async (invoice: Invoice) => {
+    try {
+      // Find customer
+      const customer = customers.find((c) => c.id === invoice.customer_id);
+      if (!customer) {
+        alert("اطلاعات مشتری یافت نشد");
+        return;
+      }
+
+      // Find company
+      const company = companies.find((c) => c.id === invoice.company_id);
+      if (!company) {
+        alert("اطلاعات شرکت یافت نشد");
+        return;
+      }
+
+      // Ensure invoice has items loaded
+      let invoiceWithItems = invoice;
+      if (!invoice.items || invoice.items.length === 0) {
+        // Fetch full invoice details if items not loaded
+        invoiceWithItems = await invoiceAPI.getById(invoice.id);
+      }
+
+      if (!invoiceWithItems.items || invoiceWithItems.items.length === 0) {
+        alert("فاکتور فاقد آیتم است");
+        return;
+      }
+
+      // Export to PDF
+      exportInvoiceToPDF({
+        invoice: invoiceWithItems,
+        customer,
+        company,
+        items: invoiceWithItems.items,
+      });
+    } catch (error) {
+      console.error("Failed to export PDF:", error);
+      alert("خطا در ایجاد فایل PDF");
+    }
+  };
+
+  const handleExportPersianPDF = async (invoice: Invoice) => {
+    try {
+      // Find customer
+      const customer = customers.find((c) => c.id === invoice.customer_id);
+      if (!customer) {
+        alert("اطلاعات مشتری یافت نشد");
+        return;
+      }
+
+      // Ensure invoice has items loaded
+      let invoiceWithItems = invoice;
+      if (!invoice.items || invoice.items.length === 0) {
+        // Fetch full invoice details if items not loaded
+        invoiceWithItems = await invoiceAPI.getById(invoice.id);
+      }
+
+      if (!invoiceWithItems.items || invoiceWithItems.items.length === 0) {
+        alert("فاکتور فاقد آیتم است");
+        return;
+      }
+
+      // Find company name
+      const company = companies.find((c) => c.id === invoice.company_id);
+
+      // Export to Persian PDF using pdfmake (supports RTL and Persian fonts)
+      await generatePersianInvoicePDF({
+        invoice_number: invoiceWithItems.invoice_number,
+        issue_date: invoiceWithItems.issue_date,
+        due_date: invoiceWithItems.due_date,
+        status: invoiceWithItems.status,
+        customer: {
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          address: customer.address,
+        },
+        items: invoiceWithItems.items,
+        subtotal: invoiceWithItems.subtotal,
+        total_discount: invoiceWithItems.total_discount,
+        total_tax: invoiceWithItems.total_tax,
+        final_amount: invoiceWithItems.final_amount,
+        notes: invoiceWithItems.notes,
+        company_name: company?.name,
+      });
+    } catch (error) {
+      console.error("Failed to export Persian PDF:", error);
+      alert("خطا در ایجاد فایل PDF فارسی");
+    }
+  };
+
   const toggleRowExpansion = async (invoiceId: number) => {
     const isExpanding = !expandedRows.includes(invoiceId);
     
@@ -229,34 +321,12 @@ export const InvoiceList: React.FC = () => {
             {PERSIAN_LABELS.invoices}
           </Typography>
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            <Box sx={{ minWidth: 220 }}>
-              <FormControl
-                fullWidth
-                size="small"
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                  borderRadius: "10px",
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: "transparent",
-                    },
-                  },
-                }}
-              >
-                <InputLabel>{PERSIAN_LABELS.companies}</InputLabel>
-                <Select
-                  value={selectedCompanyId}
-                  label={PERSIAN_LABELS.companies}
-                  onChange={(e) => setSelectedCompanyId(e.target.value as number)}
-                >
-                  {companies.map((company) => (
-                    <MenuItem key={company.id} value={company.id}>
-                      {company.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+            <SelectField
+              value={selectedCompanyId}
+              onChange={(e) => setSelectedCompanyId(e.target.value as number)}
+              options={companies.map((c) => ({ id: c.id, name: c.name }))}
+              minWidth={160}
+            />
             <RoleGuard permission="invoice:create">
               <Button
                 variant="outlined"
@@ -267,7 +337,8 @@ export const InvoiceList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   px: 3,
-                  py: 1.2,
+                  height: 44,
+                  borderRadius: "12px",
                   "&:disabled": {
                     opacity: 0.6,
                     cursor: "not-allowed",
@@ -411,54 +482,76 @@ export const InvoiceList: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell align="center">
-                    <RoleGuard permission="invoice:update">
-                      {(canLockInvoices || !invoice.is_locked) && canUpdateInvoices && (
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEditClick(invoice)}
-                          color="primary"
-                        >
-                          <Edit fontSize="small" />
-                        </IconButton>
-                      )}
-                      {(canLockInvoices || invoice.status.toLowerCase() !== "paid") &&
-                        canDeleteInvoices && (
+                    <Stack direction="row" spacing={0.5} justifyContent="center">
+                      <RoleGuard permission="invoice:update">
+                        {(canLockInvoices || !invoice.is_locked) && canUpdateInvoices && (
                           <IconButton
                             size="small"
-                            onClick={() => handleDeleteClick(invoice.id)}
-                            color="error"
+                            onClick={() => handleEditClick(invoice)}
+                            color="primary"
+                            title="ویرایش"
                           >
-                            <Delete fontSize="small" />
+                            <Edit fontSize="small" />
                           </IconButton>
                         )}
-                      {canCreateSnapshot && (
+                        {(canLockInvoices || invoice.status.toLowerCase() !== "paid") &&
+                          canDeleteInvoices && (
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDeleteClick(invoice.id)}
+                              color="error"
+                              title="حذف"
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          )}
+                      </RoleGuard>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleExportPersianPDF(invoice)}
+                        color="secondary"
+                        title="دانلود PDF فارسی"
+                      >
+                        <PictureAsPdf fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleExportPDF(invoice)}
+                        color="success"
+                        title="دانلود PDF (انگلیسی)"
+                      >
+                        <PictureAsPdf fontSize="small" />
+                      </IconButton>
+                      <RoleGuard permission="invoice:update">
+                        {canCreateSnapshot && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() =>
+                              handleCreateCommissionSnapshot(invoice.id)
+                            }
+                            sx={{ ml: 1 }}
+                          >
+                            {PERSIAN_LABELS.createSnapshot}
+                          </Button>
+                        )}
+                      </RoleGuard>
+                      <RoleGuard permission="invoice:lock">
                         <Button
                           size="small"
                           variant="outlined"
-                          onClick={() =>
-                            handleCreateCommissionSnapshot(invoice.id)
-                          }
+                          onClick={async () => {
+                            const updated = invoice.is_locked
+                              ? await invoiceAPI.unlock(invoice.id)
+                              : await invoiceAPI.lock(invoice.id);
+                            dispatch(updateInvoice(updated));
+                          }}
                           sx={{ ml: 1 }}
                         >
-                          {PERSIAN_LABELS.createSnapshot}
+                          {invoice.is_locked ? "بازکردن قفل" : "قفل"}
                         </Button>
-                      )}
-                    </RoleGuard>
-                    <RoleGuard permission="invoice:lock">
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={async () => {
-                          const updated = invoice.is_locked
-                            ? await invoiceAPI.unlock(invoice.id)
-                            : await invoiceAPI.lock(invoice.id);
-                          dispatch(updateInvoice(updated));
-                        }}
-                        sx={{ ml: 1 }}
-                      >
-                        {invoice.is_locked ? "بازکردن قفل" : "قفل"}
-                      </Button>
-                    </RoleGuard>
+                      </RoleGuard>
+                    </Stack>
                   </TableCell>
                 </TableRow>
                 <TableRow>

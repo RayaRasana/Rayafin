@@ -15,9 +15,6 @@ import {
   DialogContent,
   DialogActions,
   CircularProgress,
-  FormControl,
-  InputLabel,
-  Select,
   MenuItem,
   Stack,
   Card,
@@ -36,6 +33,7 @@ import {
 import { Customer } from "../../types";
 import { customerAPI } from "../../api/customers";
 import { CustomerForm } from "./CustomerForm";
+import { SelectField } from "../Common/SelectField";
 import { PERSIAN_LABELS } from "../../utils/persian";
 import { useAuth } from "../../context/AuthContext";
 import { hasPermission } from "../../utils/rbac";
@@ -198,34 +196,12 @@ export const CustomerList: React.FC = () => {
             {PERSIAN_LABELS.customers}
           </Typography>
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            <Box sx={{ minWidth: 220 }}>
-              <FormControl
-                fullWidth
-                size="small"
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                  borderRadius: "10px",
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: "transparent",
-                    },
-                  },
-                }}
-              >
-                <InputLabel>{PERSIAN_LABELS.companies}</InputLabel>
-                <Select
-                  value={selectedCompanyId}
-                  label={PERSIAN_LABELS.companies}
-                  onChange={(e) => setSelectedCompanyId(e.target.value as number)}
-                >
-                  {companies.map((company) => (
-                    <MenuItem key={company.id} value={company.id}>
-                      {company.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+            <SelectField
+              value={selectedCompanyId}
+              onChange={(e) => setSelectedCompanyId(e.target.value as number)}
+              options={companies.map((c) => ({ id: c.id, name: c.name }))}
+              minWidth={160}
+            />
             {canCreateCustomer && (
               <Button
                 variant="outlined"
@@ -235,7 +211,8 @@ export const CustomerList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   px: 3,
-                  py: 1.2,
+                  height: 44,
+                  borderRadius: "12px",
                 }}
               >
                 {PERSIAN_LABELS.addCustomer}

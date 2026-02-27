@@ -626,7 +626,7 @@ def start_backend(python_executable: str):
     
     # Determine the uvicorn command
     print_info("Starting uvicorn server...")
-    print_info("Command: uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000")
+    print_info("Command: uvicorn backend.app.main:app --reload --reload-dir backend --host 127.0.0.1 --port 8000")
     
     try:
         # Start the server
@@ -635,6 +635,7 @@ def start_backend(python_executable: str):
                 python_executable, "-m", "uvicorn",
                 "backend.app.main:app",
                 "--reload",
+                "--reload-dir", "backend",
                 "--host", "127.0.0.1",
                 "--port", "8000"
             ],

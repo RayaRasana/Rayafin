@@ -38,6 +38,7 @@ import { Commission } from "../../types";
 import { commissionAPI } from "../../api/commissions";
 import { useAuth } from "../../context/AuthContext";
 import { RoleGuard } from "../Common/RoleGuard";
+import { SelectField } from "../Common/SelectField";
 import { PERSIAN_LABELS } from "../../utils/persian";
 import { validateCommissionPercent } from "../../utils/validation";
 import { formatDateToPersian } from "../../utils/dateUtils";
@@ -220,68 +221,27 @@ export const CommissionList: React.FC = () => {
             {PERSIAN_LABELS.commissions}
           </Typography>
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            <Box sx={{ minWidth: 200 }}>
-              <FormControl
-                fullWidth
-                size="small"
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                  borderRadius: "10px",
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: "transparent",
-                    },
-                  },
-                }}
-              >
-                <InputLabel>{PERSIAN_LABELS.invoices}</InputLabel>
-                <Select
-                  value={selectedInvoiceId}
-                  label={PERSIAN_LABELS.invoices}
-                  onChange={(e) => setSelectedInvoiceId(e.target.value as number | "all")}
-                >
-                  <MenuItem value="all">{PERSIAN_LABELS.invoices}</MenuItem>
-                  {invoices.map((invoice) => (
-                    <MenuItem key={invoice.id} value={invoice.id}>
-                      {invoice.invoice_number}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+            <SelectField
+              value={selectedInvoiceId}
+              onChange={(e) => setSelectedInvoiceId(e.target.value as number | "all")}
+              options={[
+                { id: "all", name: PERSIAN_LABELS.invoices },
+                ...invoices.map((invoice) => ({ id: invoice.id, name: invoice.invoice_number }))
+              ]}
+              minWidth={160}
+            />
 
-            <Box sx={{ minWidth: 200 }}>
-              <FormControl
-                fullWidth
-                size="small"
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                  borderRadius: "10px",
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: "transparent",
-                    },
-                  },
-                }}
-              >
-                <InputLabel>{PERSIAN_LABELS.users}</InputLabel>
-                <Select
-                  value={selectedUserId}
-                  label={PERSIAN_LABELS.users}
-                  onChange={(e) => setSelectedUserId(e.target.value as number | "all")}
-                >
-                  <MenuItem value="all">{PERSIAN_LABELS.users}</MenuItem>
-                  {users.map((user) => (
-                    <MenuItem key={user.id} value={user.id}>
-                      {user.full_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+            <SelectField
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value as number | "all")}
+              options={[
+                { id: "all", name: PERSIAN_LABELS.users },
+                ...users.map((user) => ({ id: user.id, name: user.full_name }))
+              ]}
+              minWidth={160}
+            />
 
             <Button
-              size="small"
               variant="outlined"
               startIcon={<Refresh />}
               onClick={() => loadCommissions()}
@@ -289,8 +249,9 @@ export const CommissionList: React.FC = () => {
                 color: "white",
                 borderColor: "rgba(255, 255, 255, 0.8)",
                 fontWeight: 600,
-                borderRadius: "10px",
+                borderRadius: "12px",
                 px: 2,
+                height: 44,
                 borderWidth: 2,
                 transition: "all 0.3s ease",
                 "&:hover": {
@@ -314,7 +275,7 @@ export const CommissionList: React.FC = () => {
                 fontWeight: 700,
                 borderRadius: "12px",
                 px: 3,
-                py: 1.2,
+                height: 44,
                 boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
                 transition: "all 0.3s ease",
 
