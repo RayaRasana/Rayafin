@@ -168,10 +168,10 @@ export const UserList: React.FC = () => {
         sx={{
           mb: 3,
           p: 3,
-          background: "linear-gradient(135deg, #2e5090 0%, #3d6ca8 100%)",
+          background: "linear-gradient(135deg, #D4A644 0%, #BF933A 100%)",
           color: "white",
           borderRadius: "16px",
-          boxShadow: "0 4px 20px rgba(46, 80, 144, 0.25)",
+          boxShadow: "0 4px 20px rgba(212, 166, 68, 0.25)",
         }}
       >
         <Stack
@@ -193,15 +193,22 @@ export const UserList: React.FC = () => {
               minWidth={160}
             />
             <Button
-              variant="outlined"
-              className="add-button"
+              variant="contained"
               startIcon={<Add />}
               onClick={handleAddClick}
               sx={{
+                backgroundColor: "#D4A644",
+                color: "#ffffff",
                 fontWeight: 700,
                 px: 3,
                 height: 44,
                 borderRadius: "12px",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.12)",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  backgroundColor: "#BF933A",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.16)",
+                },
               }}
             >
               {PERSIAN_LABELS.addUser}
@@ -239,13 +246,13 @@ export const UserList: React.FC = () => {
         >
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: "#f0f4f8" }}>
+              <TableRow sx={{ backgroundColor: "#FBF9F6" }}>
                 <TableCell
                   align="right"
                   sx={{
                     fontWeight: 700,
                     fontSize: "0.95rem",
-                    color: "#2e5090",
+                    color: "#D4A644",
                   }}
                 >
                   {PERSIAN_LABELS.username}
@@ -255,7 +262,7 @@ export const UserList: React.FC = () => {
                   sx={{
                     fontWeight: 700,
                     fontSize: "0.95rem",
-                    color: "#2e5090",
+                    color: "#D4A644",
                   }}
                 >
                   {PERSIAN_LABELS.fullName}
@@ -265,7 +272,7 @@ export const UserList: React.FC = () => {
                   sx={{
                     fontWeight: 700,
                     fontSize: "0.95rem",
-                    color: "#2e5090",
+                    color: "#D4A644",
                   }}
                 >
                   {PERSIAN_LABELS.email}
@@ -275,7 +282,7 @@ export const UserList: React.FC = () => {
                   sx={{
                     fontWeight: 700,
                     fontSize: "0.95rem",
-                    color: "#2e5090",
+                    color: "#D4A644",
                   }}
                 >
                   نقش
@@ -285,7 +292,7 @@ export const UserList: React.FC = () => {
                   sx={{
                     fontWeight: 700,
                     fontSize: "0.95rem",
-                    color: "#2e5090",
+                    color: "#D4A644",
                   }}
                 >
                   {PERSIAN_LABELS.companies}
@@ -295,7 +302,7 @@ export const UserList: React.FC = () => {
                   sx={{
                     fontWeight: 700,
                     fontSize: "0.95rem",
-                    color: "#2e5090",
+                    color: "#D4A644",
                     width: "140px",
                   }}
                 >
@@ -393,7 +400,7 @@ export const UserList: React.FC = () => {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 700, color: "#2e5090" }}>
+        <DialogTitle sx={{ fontWeight: 700, color: "#D4A644" }}>
           {PERSIAN_LABELS.delete}
         </DialogTitle>
         <DialogContent sx={{ pt: 2 }}>

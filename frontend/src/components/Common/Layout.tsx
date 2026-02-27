@@ -18,8 +18,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         minHeight: "100vh",
         width: "100%",
         overflowX: "hidden",
-        backgroundColor: "#f0f4f8",
-        backgroundImage: "linear-gradient(180deg, #f0f4f8 0%, #e8eef5 100%)",
+        backgroundColor: "#FBF9F6",
+        backgroundImage: "linear-gradient(180deg, #FBF9F6 0%, #F5F2ED 100%)",
       }}
     >
       <Sidebar

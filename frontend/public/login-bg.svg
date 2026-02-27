@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" width="1920" height="1080">
+  <defs>
+    <!-- Main Gradient -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFEF5;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FCF9ED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F9F5DB;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Hexagon Pattern -->
+    <pattern id="hexPattern" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+      <polygon points="100,25 175,62.5 175,137.5 100,175 25,137.5 25,62.5" 
+               fill="none" stroke="#ffffff" stroke-width="1" opacity="0.08" />
+    </pattern>
+
+    <!-- Diagonal Lines Pattern -->
+    <pattern id="linePattern" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="80" stroke="#ffffff" stroke-width="1" opacity="0.05" />
+    </pattern>
+
+    <!-- Radial Gradient Glow -->
+    <radialGradient id="glowGradient">
+      <stop offset="0%" style="stop-color:#FFFEF5;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#FCF9ED;stop-opacity:0" />
+    </radialGradient>
+
+    <!-- Animated Glow -->
+    <filter id="softGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Base Gradient Background -->
+  <rect width="1920" height="1080" fill="url(#bgGradient)"/>
+
+  <!-- Hexagon Pattern Layer -->
+  <rect width="1920" height="1080" fill="url(#hexPattern)"/>
+
+  <!-- Diagonal Lines Pattern -->
+  <rect width="1920" height="1080" fill="url(#linePattern)"/>
+
+  <!-- Top Left Glow -->
+  <circle cx="200" cy="200" r="400" fill="url(#glowGradient)" opacity="0.4" filter="url(#softGlow)"/>
+
+  <!-- Bottom Right Glow -->
+  <circle cx="1720" cy="880" r="400" fill="url(#glowGradient)" opacity="0.3" filter="url(#softGlow)"/>
+
+  <!-- Top Right Accent -->
+  <circle cx="1800" cy="100" r="300" fill="#F5E6C8" opacity="0.08" filter="url(#softGlow)"/>
+
+  <!-- Large Background Hexagons - Subtle -->
+  <g opacity="0.06">
+    <!-- Top Left Hexagon -->
+    <polygon points="150,150 250,100 350,150 350,250 250,300 150,250" 
+             fill="none" stroke="#ffffff" stroke-width="2" />
+    
+    <!-- Bottom Right Hexagon -->
+    <polygon points="1570,830 1670,780 1770,830 1770,930 1670,980 1570,930" 
+             fill="none" stroke="#ffffff" stroke-width="2" />
+    
+    <!-- Center Right Hexagon -->
+    <polygon points="1650,450 1750,400 1850,450 1850,550 1750,600 1650,550" 
+             fill="none" stroke="#2B1C0C" stroke-width="1.5" />
+  </g>
+
+  <!-- Decorative Elements - Dollar Signs -->
+  <g opacity="0.04" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="#2B1C0C">
+    <text x="200" y="500">$</text>
+    <text x="1600" y="300">$</text>
+  </g>
+
+  <!-- Overlay Shadow for depth -->
+  <rect width="1920" height="1080" fill="#000000" opacity="0.05"/>
+
+  <!-- Vignette Effect -->
+  <defs>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0" />
+      <stop offset="100%" style="stop-color:#2B1C0C;stop-opacity:0.08" />
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#vignette)"/>
+</svg>

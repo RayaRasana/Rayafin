@@ -306,10 +306,10 @@ export const InvoiceList: React.FC = () => {
         sx={{
           mb: 3,
           p: 3,
-          background: "linear-gradient(135deg, #2e5090 0%, #3d6ca8 100%)",
+          background: "linear-gradient(135deg, #D4A644 0%, #BF933A 100%)",
           color: "white",
           borderRadius: "16px",
-          boxShadow: "0 4px 20px rgba(46, 80, 144, 0.25)",
+          boxShadow: "0 4px 20px rgba(212, 166, 68, 0.25)",
         }}
       >
         <Stack
@@ -329,16 +329,23 @@ export const InvoiceList: React.FC = () => {
             />
             <RoleGuard permission="invoice:create">
               <Button
-                variant="outlined"
-                className="add-button"
+                variant="contained"
                 startIcon={<Add />}
                 onClick={handleAddClick}
                 disabled={!canCreateInvoices}
                 sx={{
+                  backgroundColor: "#D4A644",
+                  color: "#ffffff",
                   fontWeight: 700,
                   px: 3,
                   height: 44,
                   borderRadius: "12px",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.12)",
+                  transition: "all 0.3s ease",
+                  "&:hover:not(:disabled)": {
+                    backgroundColor: "#BF933A",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.16)",
+                  },
                   "&:disabled": {
                     opacity: 0.6,
                     cursor: "not-allowed",
@@ -361,7 +368,7 @@ export const InvoiceList: React.FC = () => {
         }}
       >
         <Table>
-          <TableHead sx={{ backgroundColor: "#f0f4f8" }}>
+          <TableHead sx={{ backgroundColor: "#FBF9F6" }}>
             <TableRow>
               <TableCell sx={{ width: "50px" }} />
               <TableCell
@@ -369,7 +376,7 @@ export const InvoiceList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.invoiceNumber}
@@ -379,7 +386,7 @@ export const InvoiceList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.customers}
@@ -389,7 +396,7 @@ export const InvoiceList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.invoiceDate}
@@ -399,7 +406,7 @@ export const InvoiceList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.dueDate}
@@ -409,7 +416,7 @@ export const InvoiceList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.totalAmount}
@@ -419,7 +426,7 @@ export const InvoiceList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.status}
@@ -430,7 +437,7 @@ export const InvoiceList: React.FC = () => {
                   width: "150px",
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.edit}

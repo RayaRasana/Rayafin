@@ -149,7 +149,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         sx={{
           fontWeight: 700,
           fontSize: "1.25rem",
-          color: "#2e5090",
+          color: "#D4A644",
         }}
       >
         {user ? PERSIAN_LABELS.editUser : PERSIAN_LABELS.addUser}

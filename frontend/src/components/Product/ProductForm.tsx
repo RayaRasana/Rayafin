@@ -166,7 +166,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         sx={{
           fontWeight: 700,
           fontSize: "1.25rem",
-          color: "#2e5090",
+          color: "#D4A644",
         }}
       >
         {product ? PERSIAN_LABELS.editProduct : PERSIAN_LABELS.addProduct}

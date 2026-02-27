@@ -206,10 +206,10 @@ export const CommissionList: React.FC = () => {
         sx={{
           mb: 3,
           p: 3,
-          background: "linear-gradient(135deg, #2e5090 0%, #3d6ca8 100%)",
+          background: "linear-gradient(135deg, #D4A644 0%, #BF933A 100%)",
           color: "white",
           borderRadius: "16px",
-          boxShadow: "0 4px 20px rgba(46, 80, 144, 0.25)",
+          boxShadow: "0 4px 20px rgba(212, 166, 68, 0.25)",
         }}
       >
         <Stack
@@ -271,7 +271,7 @@ export const CommissionList: React.FC = () => {
               disabled={!canManageCommissions}
               sx={{
                 backgroundColor: "rgba(255, 255, 255, 0.95)",
-                color: "#2e5090",
+                color: "#D4A644",
                 fontWeight: 700,
                 borderRadius: "12px",
                 px: 3,
@@ -305,14 +305,14 @@ export const CommissionList: React.FC = () => {
         }}
       >
         <Table>
-          <TableHead sx={{ backgroundColor: "#f0f4f8" }}>
+          <TableHead sx={{ backgroundColor: "#FBF9F6" }}>
             <TableRow>
               <TableCell
                 align="right"
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.invoices}
@@ -322,7 +322,7 @@ export const CommissionList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.users}
@@ -332,7 +332,7 @@ export const CommissionList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.commissionPercent}
@@ -342,7 +342,7 @@ export const CommissionList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.commissionAmount}
@@ -352,7 +352,7 @@ export const CommissionList: React.FC = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.paidDate}
@@ -363,7 +363,7 @@ export const CommissionList: React.FC = () => {
                   width: "120px",
                   fontWeight: 700,
                   fontSize: "0.95rem",
-                  color: "#2e5090",
+                  color: "#D4A644",
                 }}
               >
                 {PERSIAN_LABELS.edit}

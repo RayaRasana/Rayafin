@@ -263,10 +263,10 @@ export const ProductList: React.FC = () => {
         sx={{
           mb: 3,
           p: 3,
-          background: "linear-gradient(135deg, #2e5090 0%, #3d6ca8 100%)",
+          background: "linear-gradient(135deg, #D4A644 0%, #BF933A 100%)",
           color: "white",
           borderRadius: "16px",
-          boxShadow: "0 4px 20px rgba(46, 80, 144, 0.25)",
+          boxShadow: "0 4px 20px rgba(212, 166, 68, 0.25)",
         }}
       >
         <Stack
@@ -290,8 +290,9 @@ export const ProductList: React.FC = () => {
                 startIcon={<Upload />}
                 onClick={handleImportClick}
                 sx={{
-                  color: "white",
-                  borderColor: "rgba(255, 255, 255, 0.8)",
+                  backgroundColor: "#ffffff",
+                  color: "#D4A644",
+                  borderColor: "#D4A644",
                   fontWeight: 600,
                   borderRadius: "12px",
                   px: 2.5,
@@ -299,10 +300,11 @@ export const ProductList: React.FC = () => {
                   borderWidth: 2,
                   transition: "all 0.3s ease",
                   "&:hover": {
-                    borderColor: "white",
-                    backgroundColor: "rgba(255, 255, 255, 0.15)",
-                    borderWidth: 2,
+                    backgroundColor: "#D4A644",
+                    color: "#ffffff",
+                    borderColor: "#D4A644",
                     transform: "translateY(-2px)",
+                    boxShadow: "0 4px 12px rgba(212, 166, 68, 0.3)",
                   },
                 }}
               >
@@ -311,15 +313,22 @@ export const ProductList: React.FC = () => {
             )}
             {canCreateProduct && (
               <Button
-                variant="outlined"
-                className="add-button"
+                variant="contained"
                 startIcon={<Add />}
                 onClick={handleAddClick}
                 sx={{
+                  backgroundColor: "#D4A644",
+                  color: "#ffffff",
                   fontWeight: 700,
                   px: 3,
                   height: 44,
                   borderRadius: "12px",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.12)",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    backgroundColor: "#BF933A",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.16)",
+                  },
                 }}
               >
                 {PERSIAN_LABELS.addProduct}
@@ -339,16 +348,16 @@ export const ProductList: React.FC = () => {
       >
         <TableContainer component={Paper}>
           <Table>
-            <TableHead sx={{ backgroundColor: "#f0f4f8" }}>
+            <TableHead sx={{ backgroundColor: "#FBF9F6" }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>کد محصول</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>{PERSIAN_LABELS.productName}</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>توضیحات</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>قیمت فروش</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>موجودی</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>وضعیت</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem" }}>{PERSIAN_LABELS.company}</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: "#2e5090", fontSize: "0.95rem", textAlign: "center" }}>عملیات</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#D4A644", fontSize: "0.95rem" }}>کد محصول</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#D4A644", fontSize: "0.95rem" }}>{PERSIAN_LABELS.productName}</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#D4A644", fontSize: "0.95rem" }}>توضیحات</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#D4A644", fontSize: "0.95rem" }}>قیمت فروش</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#D4A644", fontSize: "0.95rem" }}>موجودی</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#D4A644", fontSize: "0.95rem" }}>وضعیت</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#D4A644", fontSize: "0.95rem" }}>{PERSIAN_LABELS.company}</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "#D4A644", fontSize: "0.95rem", textAlign: "center" }}>عملیات</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

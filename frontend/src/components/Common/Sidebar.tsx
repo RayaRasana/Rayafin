@@ -98,7 +98,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       onMouseLeave={onMouseLeave}
       dir="rtl"
     >
-      <Box sx={{ px: 1.5, py: 2 }}>
+      <Box sx={{ px: 1.5, py: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box
+          component="img"
+          src="/logo.svg"
+          alt="رایافین"
+          sx={{
+            width: 32,
+            height: 32,
+            flexShrink: 0,
+          }}
+        />
         <Typography
           className="sidebar-brand-text"
           sx={{

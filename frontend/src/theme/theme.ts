@@ -1,20 +1,22 @@
 import { createTheme } from "@mui/material/styles";
 
-// Rayarasana Brand Colors - Professional Accounting System
+// Rayarasana Brand Colors - Extracted from Logo
+// Primary: Golden/Amber from hexagon, Secondary: Cream from inner circle
 const rayarasanaColors = {
-  primary: "#3f5bd9", // Deep professional blue
-  primaryLight: "#3d6ca8",
-  primaryDark: "#2f4fc4",
-  secondary: "#6366f1", // Modern indigo
+  primary: "#D4A644", // Gold from logo hexagon
+  primaryLight: "#E8C261", // Lighter gold
+  primaryDark: "#BF933A", // Darker gold
+  secondary: "#F5E6C8", // Cream from logo circles
+  secondaryLight: "#FEFBF7", // Very light cream
   accent: "#10b981", // Success green
   warning: "#f59e0b", // Amber
   error: "#ef4444", // Red
   info: "#3b82f6", // Light blue
-  surface: "#f8fafc", // Soft background
-  surfaceVariant: "#f1f5f9",
-  outline: "#cbd5e1", // Light border
-  textPrimary: "#1e293b",
-  textSecondary: "#64748b",
+  surface: "#FBF9F6", // Warm light background
+  surfaceVariant: "#F5F2ED", // Warm light variant
+  outline: "#DDD5CC", // Warm border
+  textPrimary: "#2B1C0C", // Dark brown
+  textSecondary: "#6B5544", // Medium brown
 };
 
 export const theme = createTheme({
@@ -113,7 +115,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           boxShadow: `0 2px 8px rgba(0, 0, 0, 0.08)`,
-          backgroundColor: "#2e5090",
+          background: `linear-gradient(135deg, ${rayarasanaColors.primary} 0%, ${rayarasanaColors.primaryDark} 100%)`,
         },
       },
     },
@@ -130,49 +132,49 @@ export const theme = createTheme({
           fontSize: "0.95rem",
           fontWeight: 600,
           transition: "all 0.2s ease",
-          boxShadow: "0 2px 8px rgba(46, 80, 144, 0.12)",
+          boxShadow: `0 2px 8px rgba(${parseInt(rayarasanaColors.primary.slice(1, 3), 16)}, ${parseInt(rayarasanaColors.primary.slice(3, 5), 16)}, ${parseInt(rayarasanaColors.primary.slice(5, 7), 16)}, 0.12)`,
 
           "&:hover": {
-            boxShadow: "0 8px 16px rgba(46, 80, 144, 0.24)",
+            boxShadow: `0 8px 16px rgba(${parseInt(rayarasanaColors.primary.slice(1, 3), 16)}, ${parseInt(rayarasanaColors.primary.slice(3, 5), 16)}, ${parseInt(rayarasanaColors.primary.slice(5, 7), 16)}, 0.24)`,
           },
 
           "&:active": {
             transform: "scale(0.98)",
-            boxShadow: "0 2px 4px rgba(46, 80, 144, 0.12)",
+            boxShadow: `0 2px 4px rgba(${parseInt(rayarasanaColors.primary.slice(1, 3), 16)}, ${parseInt(rayarasanaColors.primary.slice(3, 5), 16)}, ${parseInt(rayarasanaColors.primary.slice(5, 7), 16)}, 0.12)`,
           },
 
           "&:focus-visible": {
-            outline: "3px solid rgba(63, 91, 217, 0.22)",
+            outline: `3px solid ${rayarasanaColors.primary}38`,
             outlineOffset: "2px",
           },
         },
 
         contained: {
-          background: "linear-gradient(135deg, #3f5bd9, #2f4fc4)",
+          background: `linear-gradient(135deg, ${rayarasanaColors.primary}, ${rayarasanaColors.primaryDark})`,
           color: "#ffffff",
           border: "1px solid transparent",
 
           "&:hover": {
-            background: "#2f4fc4",
+            background: rayarasanaColors.primaryDark,
           },
         },
 
         outlined: {
-          borderColor: "#94a3b8",
+          borderColor: rayarasanaColors.outline,
           color: rayarasanaColors.textPrimary,
-          backgroundColor: "#e2e8f0",
+          backgroundColor: rayarasanaColors.secondaryLight,
 
           "&:hover": {
-            backgroundColor: "#cbd5e1",
-            borderColor: "#94a3b8",
+            backgroundColor: rayarasanaColors.secondary,
+            borderColor: rayarasanaColors.primary,
           },
         },
 
         text: {
-          color: rayarasanaColors.textPrimary,
+          color: rayarasanaColors.primary,
 
           "&:hover": {
-            backgroundColor: "rgba(63, 91, 217, 0.08)",
+            backgroundColor: `${rayarasanaColors.primary}08`,
           },
         },
 
@@ -186,12 +188,12 @@ export const theme = createTheme({
         },
 
         containedSecondary: {
-          background: "#e2e8f0",
+          background: rayarasanaColors.secondary,
           color: rayarasanaColors.textPrimary,
-          border: "1px solid #cbd5e1",
+          border: `1px solid ${rayarasanaColors.outline}`,
 
           "&:hover": {
-            background: "#cbd5e1",
+            background: rayarasanaColors.secondaryLight,
           },
         },
       },
@@ -225,7 +227,7 @@ export const theme = createTheme({
             transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
 
             "&:hover": {
-              backgroundColor: "#f1f5f9",
+              backgroundColor: rayarasanaColors.surface,
               "& .MuiOutlinedInput-notchedOutline": {
                 borderColor: rayarasanaColors.primary,
               },
@@ -309,7 +311,7 @@ export const theme = createTheme({
 
             "&:hover": {
               backgroundColor: `${rayarasanaColors.primary}04`,
-              boxShadow: `0 4px 12px rgba(46, 80, 144, 0.08)`,
+              boxShadow: `0 4px 12px rgba(${parseInt(rayarasanaColors.primary.slice(1, 3), 16)}, ${parseInt(rayarasanaColors.primary.slice(3, 5), 16)}, ${parseInt(rayarasanaColors.primary.slice(5, 7), 16)}, 0.08)`,
             },
 
             "& .MuiTableCell-body": {

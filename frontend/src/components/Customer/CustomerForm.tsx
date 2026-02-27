@@ -142,7 +142,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
         sx={{
           fontWeight: 700,
           fontSize: "1.25rem",
-          color: "#2e5090",
+          color: "#D4A644",
         }}
       >
         {customer ? PERSIAN_LABELS.editCustomer : PERSIAN_LABELS.addCustomer}

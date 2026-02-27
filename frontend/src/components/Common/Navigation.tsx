@@ -48,7 +48,7 @@ export const Navigation: React.FC = () => {
     <AppBar
       position="sticky"
       sx={{
-        background: "linear-gradient(135deg, #2e5090 0%, #3d6ca8 100%)",
+        background: "linear-gradient(135deg, #D4A644 0%, #BF933A 100%)",
         backdropFilter: "blur(10px)",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
       }}
@@ -63,24 +63,43 @@ export const Navigation: React.FC = () => {
             padding: "0.75rem 0",
           }}
         >
-          {/* Logo/Title */}
-          <Typography
-            variant="h5"
+          {/* Logo/Brand */}
+          <Box
             sx={{
-              fontWeight: 700,
-              color: "white",
-              fontSize: "1.25rem",
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
               cursor: "pointer",
-              transition: "opacity 0.3s ease",
-
+              transition: "transform 0.3s ease",
+              mr: 4,
               "&:hover": {
-                opacity: 0.8,
+                transform: "scale(1.05)",
               },
             }}
             onClick={() => handleNavigate("/")}
           >
-            رایافین
-          </Typography>
+            <Box
+              component="img"
+              src="/logo.svg"
+              alt="رایافین"
+              sx={{
+                height: 40,
+                width: "auto",
+                display: "block",
+              }}
+            />
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                color: "white",
+                fontSize: "1.1rem",
+                display: { xs: "none", sm: "block" },
+              }}
+            >
+              رایافین
+            </Typography>
+          </Box>
 
         {/* Navigation Links */}
         <Box sx={{ display: "flex", gap: 1 }}>

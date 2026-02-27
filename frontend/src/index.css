@@ -1,3 +1,21 @@
+:root {
+  /* Brand Colors from Rayarasana Logo */
+  --color-primary: #D4A644;
+  --color-primary-light: #E8C261;
+  --color-primary-dark: #BF933A;
+  --color-secondary: #F5E6C8;
+  --color-secondary-light: #FEFBF7;
+  --color-text-primary: #2B1C0C;
+  --color-text-secondary: #6B5544;
+  --color-surface: #FBF9F6;
+  --color-surface-variant: #F5F2ED;
+  --color-outline: #DDD5CC;
+  --color-error: #ef4444;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -16,6 +34,7 @@ body,
   -moz-osx-font-smoothing: grayscale;
   direction: rtl;
   text-align: right;
+  color: var(--color-text-primary);
 }
 
 /* RTL Support */
@@ -90,27 +109,27 @@ code {
 /* TYPE 1: Add buttons on list pages */
 .MuiButton-root.add-button {
   background: #ffffff;
-  color: #3f5bd9;
-  border: 1px solid #3f5bd9;
-  box-shadow: 0 2px 8px rgba(46, 80, 144, 0.12);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  box-shadow: 0 2px 8px rgba(212, 166, 68, 0.12);
 }
 
 .MuiButton-root.add-button:hover {
-  background: #3f5bd9;
+  background: var(--color-primary);
   color: #ffffff;
-  box-shadow: 0 6px 16px rgba(46, 80, 144, 0.2);
+  box-shadow: 0 6px 16px rgba(212, 166, 68, 0.2);
 }
 
 /* TYPE 2: Primary form actions */
 .MuiButton-root.form-primary-button {
-  background: linear-gradient(135deg, #3f5bd9, #2f4fc4);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: #ffffff;
   border: none;
-  box-shadow: 0 2px 8px rgba(46, 80, 144, 0.16);
+  box-shadow: 0 2px 8px rgba(212, 166, 68, 0.16);
 }
 
 .MuiButton-root.form-primary-button:hover {
-  background: #2f4fc4;
+  background: var(--color-primary-dark);
   color: #ffffff;
 }
 
@@ -132,7 +151,7 @@ code {
 
 /* Optional danger action */
 .MuiButton-root.danger-button {
-  background: #ef4444;
+  background: var(--color-error);
   color: #ffffff;
   border: none;
 }
@@ -148,33 +167,34 @@ textarea,
 select {
   border-radius: 12px;
   padding: 10px 14px;
-  background-color: #f3f6fb;
-  border: 1px solid #cbd5e1;
+  background-color: var(--color-surface-variant);
+  border: 1px solid var(--color-outline);
   transition: 0.2s ease;
+  color: var(--color-text-primary);
 }
 
 input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: #3f5bd9;
-  box-shadow: 0 0 0 3px rgba(63, 91, 217, 0.15);
-  background-color: #f3f6fb;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(212, 166, 68, 0.15);
+  background-color: var(--color-surface-variant);
 }
 
 /* MUI input focus parity */
 .MuiOutlinedInput-root {
   border-radius: 12px;
-  background-color: #f3f6fb;
+  background-color: var(--color-surface-variant);
 }
 
 .MuiOutlinedInput-root.Mui-focused {
-  background-color: #f3f6fb;
+  background-color: var(--color-surface-variant);
 }
 
 .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-  border-color: #3f5bd9;
-  box-shadow: 0 0 0 3px rgba(63, 91, 217, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(212, 166, 68, 0.15);
 }
 
 /* Scrollbar styling */
@@ -184,14 +204,15 @@ select:focus {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--color-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: var(--color-outline);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--color-primary-light);
 }
+

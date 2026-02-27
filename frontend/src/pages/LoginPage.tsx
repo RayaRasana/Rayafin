@@ -90,7 +90,10 @@ export const LoginPage: React.FC = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #2e5090 0%, #6366f1 100%)",
+        backgroundImage: "url(/login-bg.svg)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
         direction: "rtl",
         padding: 2,
       }}
@@ -105,11 +108,21 @@ export const LoginPage: React.FC = () => {
         >
           {/* Logo/Header */}
           <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Box
+              component="img"
+              src="/logo.svg"
+              alt="رایافین"
+              sx={{
+                height: 80,
+                width: "auto",
+                mb: 2,
+              }}
+            />
             <Typography
-              variant="h3"
+              variant="h4"
               sx={{
                 fontWeight: 700,
-                color: "#2e5090",
+                color: "#D4A644",
                 mb: 1,
               }}
             >
@@ -187,7 +200,7 @@ export const LoginPage: React.FC = () => {
               type="submit"
               disabled={loading}
               sx={{
-                background: "linear-gradient(135deg, #3f5bd9, #2f4fc4)",
+                background: "linear-gradient(135deg, #D4A644, #BF933A)",
                 color: "#ffffff",
                 border: "none",
                 borderRadius: "12px",
@@ -195,12 +208,12 @@ export const LoginPage: React.FC = () => {
                 fontSize: "1rem",
                 fontWeight: 600,
                 textTransform: "none",
-                boxShadow: "0 4px 12px rgba(46, 80, 144, 0.3)",
+                boxShadow: "0 4px 12px rgba(212, 166, 68, 0.3)",
                 transition: "all 0.2s ease",
 
                 "&:hover:not(:disabled)": {
-                  background: "#2f4fc4",
-                  boxShadow: "0 8px 20px rgba(47, 79, 196, 0.35)",
+                  background: "#BF933A",
+                  boxShadow: "0 8px 20px rgba(191, 147, 58, 0.35)",
                 },
 
                 "&:active:not(:disabled)": {
@@ -208,7 +221,7 @@ export const LoginPage: React.FC = () => {
                 },
 
                 "&:focus-visible": {
-                  outline: "3px solid rgba(63, 91, 217, 0.35)",
+                  outline: "3px solid rgba(212, 166, 68, 0.35)",
                   outlineOffset: "2px",
                 },
 
@@ -227,28 +240,7 @@ export const LoginPage: React.FC = () => {
               )}
             </Button>
 
-            {/* Demo Credentials Info */}
-            <Box
-              sx={{
-                mt: 3,
-                p: 2,
-                backgroundColor: "#f0f9ff",
-                borderRadius: "12px",
-                border: "1px solid #bfdbfe",
-              }}
-            >
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "#1e40af",
-                  textAlign: "center",
-                  fontSize: "0.85rem",
-                }}
-              >
-                برای آزمایش، از ایمیل: demo@example.com و رمز عبور: 123456
-                استفاده کنید.
-              </Typography>
-            </Box>
+
           </Box>
         </Card>
 
@@ -260,7 +252,7 @@ export const LoginPage: React.FC = () => {
               color: "rgba(255, 255, 255, 0.7)",
             }}
           >
-            © 2026 RR Accounting System. تمام حقوق محفوظ است.
+            قدرت‌گرفته از خلاقیت و فناوری نوآوران‌گستر رایا رسانا ⚡ © ۱۴۰۴ — همه‌ی حقوق محفوظ است
           </Typography>
         </Box>
       </Container>

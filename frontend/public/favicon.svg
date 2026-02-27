@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" preserveAspectRatio="xMidYMid meet">
+  <!-- Hexagon -->
+  <polygon points="96,24 156,60 156,132 96,168 36,132 36,60" fill="#D4A644" stroke="none"/>
+  <!-- Outer Circle -->
+  <circle cx="96" cy="96" r="44" fill="none" stroke="#F5E6C8" stroke-width="7"/>
+  <!-- Petals/Segments -->
+  <path d="M 96 52 A 44 44 0 0 1 128 68" fill="none" stroke="#F5E6C8" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 128 124 A 44 44 0 0 1 96 140" fill="none" stroke="#F5E6C8" stroke-width="7" stroke-linecap="round"/>
+  <!-- Dollar Sign -->
+  <text x="96" y="104" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#F5E6C8" text-anchor="middle" dominant-baseline="middle">$</text>
+</svg>

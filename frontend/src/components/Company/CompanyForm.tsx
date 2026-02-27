@@ -101,7 +101,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         sx={{
           fontWeight: 700,
           fontSize: "1.25rem",
-          color: "#2e5090",
+          color: "#D4A644",
         }}
       >
         {company ? PERSIAN_LABELS.editCompany : PERSIAN_LABELS.addCompany}
